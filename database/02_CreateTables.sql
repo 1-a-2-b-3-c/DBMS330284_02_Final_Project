@@ -1,0 +1,221 @@
+USE QuanLyKTX
+GO
+
+
+-- 1. SINH VIEN
+CREATE TABLE SinhVien
+(
+    MaSV VARCHAR(15) NOT NULL,
+    HoTen NVARCHAR(100) NOT NULL,
+    NgaySinh DATE NOT NULL,
+    GioiTinh NVARCHAR(10) NOT NULL,
+    QueQuan NVARCHAR(200) NULL,
+    CCCD VARCHAR(12) NULL,
+    SDT VARCHAR(15) NOT NULL,
+    Khoa NVARCHAR(100) NULL,
+    NamHoc INT NOT NULL,
+    DienUuTien NVARCHAR(100) NULL
+)
+GO
+
+
+-- 2. KHU
+CREATE TABLE Khu
+(
+    MaKhu VARCHAR(10) NOT NULL,
+    TenKhu NVARCHAR(100) NOT NULL,
+    MoTa NVARCHAR(255) NULL
+)
+GO
+
+
+-- 3. LOAI PHONG
+CREATE TABLE LoaiPhong
+(
+    MaLoaiPhong VARCHAR(10) NOT NULL,
+    TenLoaiPhong NVARCHAR(100) NOT NULL,
+    SoNguoiToiDa INT NOT NULL,
+    DonGia DECIMAL(18,2) NOT NULL,
+    MoTa NVARCHAR(255) NULL
+)
+GO
+
+
+-- 4. PHONG
+CREATE TABLE Phong
+(
+    MaPhong VARCHAR(10) NOT NULL,
+    SoPhong VARCHAR(10) NOT NULL,
+    MaKhu VARCHAR(10) NOT NULL,
+    MaLoaiPhong VARCHAR(10) NOT NULL,
+    TrangThai NVARCHAR(30) NOT NULL
+)
+GO
+
+
+-- 5. DANG KY KTX
+CREATE TABLE DangKyKTX
+(
+    MaDangKy VARCHAR(15) NOT NULL,
+    MaSV VARCHAR(15) NOT NULL,
+    MaLoaiPhong VARCHAR(10) NULL,
+    NgayDangKy DATE NOT NULL,
+    TrangThai NVARCHAR(30) NOT NULL,
+    GhiChu NVARCHAR(255) NULL
+)
+GO
+
+
+-- 6. PHAN PHONG
+CREATE TABLE PhanPhong
+(
+    MaPhanPhong VARCHAR(15) NOT NULL,
+    MaSV VARCHAR(15) NOT NULL,
+    MaPhong VARCHAR(10) NOT NULL,
+    MaDangKy VARCHAR(15) NULL,
+    NgayBatDau DATE NOT NULL,
+    NgayKetThuc DATE NULL,
+    TrangThai NVARCHAR(30) NOT NULL
+)
+GO
+
+
+-- 7. HOP DONG
+CREATE TABLE HopDong
+(
+    MaHopDong VARCHAR(15) NOT NULL,
+    MaPhanPhong VARCHAR(15) NOT NULL,
+    DieuKhoan NVARCHAR(MAX) NULL,
+    TrangThai NVARCHAR(30) NOT NULL
+)
+GO
+
+
+-- 8. GIA HAN HOP DONG
+CREATE TABLE GiaHanHopDong
+(
+    MaGiaHan VARCHAR(15) NOT NULL,
+    MaHopDong VARCHAR(15) NOT NULL,
+    NgayYeuCau DATE NOT NULL,
+    NgayBatDauMoi DATE NOT NULL,
+    NgayKetThucMoi DATE NOT NULL,
+    TrangThai NVARCHAR(30) NOT NULL
+)
+GO
+
+
+-- 9. CHUYEN PHONG
+CREATE TABLE ChuyenPhong
+(
+    MaChuyenPhong VARCHAR(15) NOT NULL,
+    MaPhanPhong VARCHAR(15) NOT NULL,
+    MaPhongMoi VARCHAR(10) NOT NULL,
+    LyDo NVARCHAR(500) NOT NULL,
+    NgayYeuCau DATE NOT NULL,
+    NgayXuLy DATE NULL,
+    TrangThai NVARCHAR(30) NOT NULL
+)
+GO
+
+
+-- 10. TRA PHONG
+CREATE TABLE TraPhong
+(
+    MaTraPhong VARCHAR(15) NOT NULL,
+    MaPhanPhong VARCHAR(15) NOT NULL,
+    LyDo NVARCHAR(500) NOT NULL,
+    NgayYeuCau DATE NOT NULL,
+    NgayTra DATE NULL,
+    KetQuaKiemKe NVARCHAR(500) NULL,
+    TrangThai NVARCHAR(30) NOT NULL
+)
+GO
+
+
+-- 11. KHOAN THU
+CREATE TABLE KhoanThu
+(
+    MaKhoanThu VARCHAR(10) NOT NULL,
+    TenKhoanThu NVARCHAR(100) NOT NULL,
+    DonGiaMacDinh DECIMAL(18,2) NOT NULL,
+    MoTa NVARCHAR(255) NULL,
+    TrangThai BIT NOT NULL
+)
+GO
+
+
+-- 12. HOA DON
+CREATE TABLE HoaDon
+(
+    MaHoaDon VARCHAR(15) NOT NULL,
+    MaPhanPhong VARCHAR(15) NOT NULL,
+    NgayLap DATE NOT NULL,
+    HanThanhToan DATE NOT NULL,
+    TrangThai NVARCHAR(30) NOT NULL,
+    LoaiHoaDon NVARCHAR(20) NOT NULL,
+    KyThu DATE NULL
+)
+GO
+
+
+-- 13. CHI TIET HOA DON
+CREATE TABLE ChiTietHoaDon
+(
+    MaHoaDon VARCHAR(15) NOT NULL,
+    MaKhoanThu VARCHAR(10) NOT NULL,
+    SoLuong INT NOT NULL,
+    DonGia DECIMAL(18,2) NOT NULL,
+    MienGiam DECIMAL(18,2) NOT NULL
+)
+GO
+
+
+-- 14. THANH TOAN
+CREATE TABLE ThanhToan
+(
+    MaThanhToan VARCHAR(15) NOT NULL,
+    MaHoaDon VARCHAR(15) NOT NULL,
+    NgayThanhToan DATETIME NOT NULL,
+    SoTien DECIMAL(18,2) NOT NULL,
+    PhuongThuc NVARCHAR(50) NOT NULL,
+    TrangThai NVARCHAR(30) NOT NULL,
+    MaGiaoDich VARCHAR(100) NULL
+)
+GO
+
+
+-- 15. VI PHAM
+CREATE TABLE ViPham
+(
+    MaViPham VARCHAR(15) NOT NULL,
+    MaSV VARCHAR(15) NOT NULL,
+    NgayLapBienBan DATE NOT NULL,
+    NgayViPham DATE NOT NULL,
+    NoiDung NVARCHAR(500) NOT NULL,
+    DiaDiem NVARCHAR(200) NULL,
+    HinhThucXuLy NVARCHAR(50) NOT NULL,
+    TrangThaiXuLy NVARCHAR(30) NOT NULL
+)
+GO
+
+
+-- 16. TAI KHOAN
+CREATE TABLE TaiKhoan
+(
+    MaTaiKhoan VARCHAR(15) NOT NULL,
+    TenDangNhap VARCHAR(50) NOT NULL,
+    MatKhauHash VARCHAR(255) NOT NULL,
+    MaSV VARCHAR(15) NULL,
+    MaVaiTro VARCHAR(10) NOT NULL,
+    TrangThai BIT NOT NULL
+)
+GO
+
+
+-- 17. VAI TRO
+CREATE TABLE VaiTro
+(
+    MaVaiTro VARCHAR(10) NOT NULL,
+    TenVaiTro NVARCHAR(50) NOT NULL
+)
+GO
