@@ -184,11 +184,6 @@ REFERENCES DangKyKTX(MaDangKy)
 GO
 
 ALTER TABLE PhanPhong
-ADD CONSTRAINT UQ_PhanPhong_MaDangKy
-UNIQUE (MaDangKy)
-GO
-
-ALTER TABLE PhanPhong
 ADD CONSTRAINT DF_PhanPhong_TrangThai
 DEFAULT N'Đang ở' FOR TrangThai
 GO

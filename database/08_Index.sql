@@ -1,0 +1,8 @@
+USE QuanLyKTX
+GO
+
+
+CREATE UNIQUE INDEX UX_PhanPhong_MaDangKy
+ON PhanPhong(MaDangKy)
+WHERE MaDangKy IS NOT NULL
+GO
