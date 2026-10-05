@@ -800,7 +800,7 @@ END
 GO
 
 
--- Trả thông tin tài khoản đang hoạt động để ứng dụng tự so khớp hash
+-- Trả thông tin tài khoản đang hoạt động
 CREATE OR ALTER PROCEDURE dbo.sp_TaiKhoan_DangNhap
     @TenDangNhap VARCHAR(50)
 AS
@@ -813,6 +813,28 @@ BEGIN
     JOIN dbo.VaiTro vt ON vt.MaVaiTro = tk.MaVaiTro
     WHERE tk.TenDangNhap = @TenDangNhap
       AND tk.TrangThai = 1;
+END
+GO
+
+
+-- Trả thông tin tài khoản
+CREATE OR ALTER PROCEDURE dbo.sp_TaiKhoan_XacThuc
+    @TenDangNhap VARCHAR(50),
+    @MatKhauHash VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        tk.MaTaiKhoan, 
+        tk.MaSV,
+        tk.MaVaiTro,
+        tk.TenVaiTro
+    FROM dbo.TaiKhoan tk
+    JOIN dbo.VaiTro vt ON vt.MaVaiTro = tk.MaVaiTro
+    WHERE tk.TenDangNhap = @TenDangNhap
+        AND tk.MatKhauHash = @MatKhauHash
+        AND tk.TrangThai = 1;
 END
 GO
 
