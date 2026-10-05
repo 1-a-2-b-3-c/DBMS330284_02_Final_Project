@@ -829,7 +829,7 @@ BEGIN
         tk.MaTaiKhoan, 
         tk.MaSV,
         tk.MaVaiTro,
-        tk.TenVaiTro
+        vt.TenVaiTro
     FROM dbo.TaiKhoan tk
     JOIN dbo.VaiTro vt ON vt.MaVaiTro = tk.MaVaiTro
     WHERE tk.TenDangNhap = @TenDangNhap
