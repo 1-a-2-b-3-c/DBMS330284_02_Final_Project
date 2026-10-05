@@ -1,8 +1,10 @@
-using Backend.Data;
+using Backend.Data.Database;
+using Backend.Data.SqlExceptionFilter;
 
 var builder = WebApplication.CreateBuilder(args);
 Database.Init(builder.Configuration.GetConnectionString("Default")!);
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+    options.Filters.Add(new SqlExceptionFilter()));
 
 var app = builder.Build();
 

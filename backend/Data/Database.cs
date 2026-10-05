@@ -1,6 +1,6 @@
 using Microsoft.Data.SqlClient;
 
-namespace Backend.Data;
+namespace Backend.Data.Database;
 
 public static class Database
 {
