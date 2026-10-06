@@ -186,6 +186,8 @@ BEGIN
     VALUES
         (@MaSV, COALESCE(@NgayLapBienBan, CAST(GETDATE() AS DATE)), @NgayViPham,
          @NoiDung, @DiaDiem, @HinhThucXuLy, N'Chưa xử lý');
+
+    SELECT CONVERT(INT, SCOPE_IDENTITY()) AS MaViPham;
 END
 GO
 
@@ -238,7 +240,8 @@ GO
 CREATE OR ALTER PROCEDURE dbo.sp_ViPham_TraCuu
     @MaSV           VARCHAR(15)  = NULL,
     @TrangThaiXuLy  NVARCHAR(30) = NULL,
-    @HinhThucXuLy   NVARCHAR(50) = NULL
+    @HinhThucXuLy   NVARCHAR(50) = NULL,
+    @MaViPham       INT          = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -250,6 +253,7 @@ BEGIN
     WHERE (@MaSV          IS NULL OR vp.MaSV = @MaSV)
       AND (@TrangThaiXuLy IS NULL OR vp.TrangThaiXuLy = @TrangThaiXuLy)
       AND (@HinhThucXuLy  IS NULL OR vp.HinhThucXuLy = @HinhThucXuLy)
+      AND (@MaViPham      IS NULL OR vp.MaViPham = @MaViPham)
     ORDER BY vp.NgayViPham DESC, vp.MaViPham DESC;
 END
 GO
@@ -463,6 +467,17 @@ BEGIN
 
     BEGIN TRY
         BEGIN TRAN;
+
+        DECLARE @TrangThaiPhanPhong NVARCHAR(30);
+
+        SELECT @TrangThaiPhanPhong = TrangThai
+        FROM dbo.PhanPhong WITH (UPDLOCK, HOLDLOCK)
+        WHERE MaPhanPhong = @MaPhanPhong;
+
+        IF @TrangThaiPhanPhong IS NULL
+            THROW 50174, N'Không tìm thấy thông tin phân phòng.', 1;
+        IF @TrangThaiPhanPhong <> N'Đang ở'
+            THROW 50175, N'Lưu trú này đã kết thúc hoặc không còn hiệu lực.', 1;
 
         -- Kiểm tra nợ trước khi cho sinh viên rời KTX
         IF EXISTS (SELECT 1 FROM dbo.HoaDon h

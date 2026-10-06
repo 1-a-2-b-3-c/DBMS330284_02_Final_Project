@@ -86,6 +86,38 @@ public class TaoDangKyRequest
     public string? GhiChu { get; set; }
 }
 
+public class XetDuyetDangKyRequest
+{
+    [Required(ErrorMessage = "Cần chọn chấp nhận hoặc từ chối đơn đăng ký.")]
+    public bool? ChapNhan { get; set; }
+
+    [StringLength(255, ErrorMessage = "Ghi chú tối đa 255 ký tự.")]
+    public string? GhiChu { get; set; }
+}
+
+public class XepPhongRequest : IValidatableObject
+{
+    [Range(1, int.MaxValue, ErrorMessage = "Mã phòng phải lớn hơn 0.")]
+    public int MaPhong { get; set; }
+
+    public DateOnly NgayBatDau { get; set; }
+
+    public DateOnly NgayKetThuc { get; set; }
+
+    public string? DieuKhoan { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (NgayBatDau == default)
+            yield return new ValidationResult("Ngày bắt đầu không được để trống.", new[] { nameof(NgayBatDau) });
+
+        if (NgayKetThuc == default)
+            yield return new ValidationResult("Ngày kết thúc không được để trống.", new[] { nameof(NgayKetThuc) });
+        else if (NgayBatDau != default && NgayKetThuc <= NgayBatDau)
+            yield return new ValidationResult("Ngày kết thúc phải sau ngày bắt đầu.", new[] { nameof(NgayKetThuc) });
+    }
+}
+
 // Khớp CK_ThanhToan_PhuongThuc và CK_ThanhToan_SoTien
 public class ThanhToanRequest
 {

@@ -46,4 +46,34 @@ public class DangKyRepository
         cmd.ExecuteNonQuery();
         return (int)maDangKy.Value;
     }
+
+    // sp_DangKyKTX_Duyet: chỉ cập nhật đơn đang ở trạng thái Chờ duyệt
+    public void Duyet(int maDangKy, bool chapNhan, string? ghiChu)
+    {
+        using var conn = Database.GetConnection();
+        conn.Open();
+        using var cmd = conn.Proc("dbo.sp_DangKyKTX_Duyet");
+        cmd.AddParam("@MaDangKy", maDangKy);
+        cmd.AddParam("@ChapNhan", chapNhan);
+        cmd.AddParam("@GhiChu", ghiChu);
+        cmd.ExecuteNonQuery();
+    }
+
+    // sp_PhanPhong_Them: tạo phân phòng, hợp đồng và cập nhật đơn trong cùng transaction
+    public (int MaPhanPhong, int MaHopDong) XepPhong(
+        int maDangKy, XepPhongRequest req)
+    {
+        using var conn = Database.GetConnection();
+        conn.Open();
+        using var cmd = conn.Proc("dbo.sp_PhanPhong_Them");
+        cmd.AddParam("@MaDangKy", maDangKy);
+        cmd.AddParam("@MaPhong", req.MaPhong);
+        cmd.AddParam("@NgayBatDau", req.NgayBatDau);
+        cmd.AddParam("@NgayKetThuc", req.NgayKetThuc);
+        cmd.AddParam("@DieuKhoan", req.DieuKhoan);
+        var maPhanPhong = cmd.AddOutInt("@MaPhanPhong");
+        var maHopDong = cmd.AddOutInt("@MaHopDong");
+        cmd.ExecuteNonQuery();
+        return ((int)maPhanPhong.Value, (int)maHopDong.Value);
+    }
 }

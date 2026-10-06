@@ -17,4 +17,13 @@ public class HopDongRepository
         using var r = cmd.ExecuteReader();
         return r.ReadRows();
     }
+
+    public void KetThucLuuTru(int maPhanPhong)
+    {
+        using var conn = Database.GetConnection();
+        conn.Open();
+        using var cmd = conn.Proc("dbo.sp_KetThucPhanPhong");
+        cmd.AddParam("@MaPhanPhong", maPhanPhong);
+        cmd.ExecuteNonQuery();
+    }
 }

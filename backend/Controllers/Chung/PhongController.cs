@@ -17,4 +17,17 @@ public class PhongController : ControllerBase
     public IActionResult TraCuu([FromQuery] string? maKhu, [FromQuery] string? trangThai,
                                 [FromQuery] bool chiConCho = false)
         => Ok(_repo.TraCuu(maKhu, trangThai, chiConCho));
+
+    // GET /api/phong/{maPhong}/sinhvien
+    [Authorize(Policy = "QuanLyKtx")]
+    [HttpGet("{maPhong:int}/sinhvien")]
+    public IActionResult SinhVienTrongPhong(int maPhong)
+    {
+        if (maPhong <= 0)
+            return BadRequest(new { message = "Mã phòng phải lớn hơn 0." });
+
+        var sinhVien = _repo.NguoiTrongPhong(maPhong)
+            .Select(sv => new { maSV = sv.MaSV, hoTen = sv.HoTen });
+        return Ok(sinhVien);
+    }
 }

@@ -32,6 +32,12 @@ public class SqlExceptionFilter : IExceptionFilter
         // Đăng ký KTX, chuyển phòng
         ["FK_DangKyKTX_LoaiPhong"] = "Loại phòng không tồn tại.",
         ["FK_ChuyenPhong_PhongMoi"] = "Phòng mới không tồn tại.",
+
+        // Vi phạm
+        ["FK_ViPham_SinhVien"] = "Mã sinh viên không tồn tại trong hệ thống.",
+        ["CK_ViPham_HinhThucXuLy"] = "Hình thức xử lý vi phạm không hợp lệ.",
+        ["CK_ViPham_TrangThaiXuLy"] = "Trạng thái xử lý vi phạm không hợp lệ.",
+        ["CK_ViPham_Ngay"] = "Ngày lập biên bản không được trước ngày vi phạm.",
     };
 
     public void OnException(ExceptionContext context)
@@ -40,6 +46,8 @@ public class SqlExceptionFilter : IExceptionFilter
 
         var (status, message) = ex.Number switch
         {
+            50174 => (404, ex.Message),
+            50173 or 50175 => (409, ex.Message),
             >= 50000 => (400, ex.Message),
             2627 or 2601 => (409, TimMoTa(ex.Message) ?? "Dữ liệu bị trùng (khóa chính hoặc giá trị duy nhất đã tồn tại)."),
             547 => (400, TimMoTa(ex.Message) ?? "Dữ liệu vi phạm ràng buộc (khóa ngoại hoặc điều kiện kiểm tra)."),

@@ -48,8 +48,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Chính sách "SinhVien": đã đăng nhập và tài khoản gắn với một mã sinh viên
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("SinhVien", p => p.RequireAuthenticatedUser().RequireClaim("maSV"))
-    // Chính sách "QuanLyKtx": quản lý KTX hoặc quản trị viên (claim maVaiTro lấy từ token)
-    .AddPolicy("QuanLyKtx", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "QLKTX", "ADMIN"));
+    // Chính sách "QuanLyKtx": quản lý KTX (claim maVaiTro lấy từ token)
+    .AddPolicy("QuanLyKtx", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "QLKTX"))
+    // Chính sách "Admin": quản trị viên (claim maVaiTro lấy từ token)
+    .AddPolicy("Admin", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "ADMIN"))
+    // Chính sách "Quản lý tài chính": quan lý tài chính (claim maVaiTro lấy từ token)
+    .AddPolicy("QuanLyTaiChinh", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "QLTC"));
 
 var app = builder.Build();
 

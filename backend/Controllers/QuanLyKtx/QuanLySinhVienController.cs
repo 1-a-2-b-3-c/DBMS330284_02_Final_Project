@@ -18,8 +18,10 @@ public class SinhVienController : ControllerBase
 
     // GET /api/ktx/sinhvien?maSV=&hoTen=&khoa=&namHoc=
     [HttpGet]
-    public IActionResult TraCuu([FromQuery] string? maSV, [FromQuery] string? hoTen,
-                                [FromQuery] string? khoa, [FromQuery] int? namHoc)
+    public IActionResult TraCuu([FromQuery] string? maSV, 
+                                [FromQuery] string? hoTen,
+                                [FromQuery] string? khoa, 
+                                [FromQuery] int? namHoc)
         => Ok(_repo.TraCuu(maSV, hoTen, khoa, namHoc));
 
     // GET /api/ktx/sinhvien/danh-muc
