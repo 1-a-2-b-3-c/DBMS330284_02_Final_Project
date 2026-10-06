@@ -615,3 +615,44 @@ BEGIN
         THROW 50242, N'Không tìm thấy tài khoản.', 1;
 END
 GO
+
+-- Thêm sinh viên kèm tạo tài khoản (cùng thành công hoặc cùng rollback)
+CREATE OR ALTER PROCEDURE dbo.sp_SinhVien_ThemKemTaiKhoan
+    @MaSV         VARCHAR(15),
+    @HoTen        NVARCHAR(100),
+    @NgaySinh     DATE,
+    @GioiTinh     NVARCHAR(10),
+    @SDT          VARCHAR(15),
+    @NamHoc       INT,
+    @MatKhauHash  VARCHAR(255),
+    @MaVaiTro     VARCHAR(10),
+    @QueQuan      NVARCHAR(200) = NULL,
+    @CCCD         VARCHAR(12)   = NULL,
+    @Khoa         NVARCHAR(100) = NULL,
+    @DienUuTien   NVARCHAR(100) = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    BEGIN TRY
+        BEGIN TRAN;
+ 
+        EXEC dbo.sp_SinhVien_Them
+            @MaSV = @MaSV, @HoTen = @HoTen, @NgaySinh = @NgaySinh,
+            @GioiTinh = @GioiTinh, @SDT = @SDT, @NamHoc = @NamHoc,
+            @QueQuan = @QueQuan, @CCCD = @CCCD, @Khoa = @Khoa,
+            @DienUuTien = @DienUuTien;
+ 
+        EXEC dbo.sp_TaiKhoan_Them
+            @MaTaiKhoan = @MaSV, @TenDangNhap = @MaSV,
+            @MatKhauHash = @MatKhauHash, @MaVaiTro = @MaVaiTro,
+            @MaSV = @MaSV;
+ 
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK;
+        THROW;
+    END CATCH
+END
+GO
