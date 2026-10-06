@@ -37,17 +37,14 @@ GO
 
 
 -- HỢP ĐỒNG
--- Hợp đồng + thời hạn (lấy từ PhanPhong) + số lần gia hạn đã duyệt
+-- Hợp đồng + thời hạn (lấy từ PhanPhong)
 CREATE OR ALTER VIEW dbo.vw_HopDongChiTiet
 AS
 SELECT  hd.MaHopDong, hd.MaPhanPhong, sv.MaSV, sv.HoTen,
         p.SoPhong, k.TenKhu,
         pp.NgayBatDau, pp.NgayKetThuc,
         DATEDIFF(DAY, CAST(GETDATE() AS DATE), pp.NgayKetThuc) AS SoNgayConLai,
-        hd.TrangThai,
-        (SELECT COUNT(*) FROM dbo.GiaHanHopDong g
-         WHERE g.MaHopDong = hd.MaHopDong
-           AND g.TrangThai = N'Đã duyệt') AS SoLanGiaHan
+        hd.TrangThai
 FROM dbo.HopDong hd
 JOIN dbo.PhanPhong pp ON pp.MaPhanPhong = hd.MaPhanPhong
 JOIN dbo.SinhVien sv  ON sv.MaSV = pp.MaSV

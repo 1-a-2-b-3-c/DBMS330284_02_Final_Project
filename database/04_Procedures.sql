@@ -284,215 +284,8 @@ END
 GO
 
 
--- CHUYỂN PHÒNG
-CREATE OR ALTER PROCEDURE dbo.sp_ChuyenPhong_YeuCau
-    @MaPhanPhong   INT,
-    @MaPhongMoi    INT,
-    @LyDo          NVARCHAR(500),
-    @MaChuyenPhong INT = NULL OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DECLARE @MaPhongCu INT, @TT NVARCHAR(30);
-
-    SELECT @MaPhongCu = MaPhong, @TT = TrangThai
-    FROM dbo.PhanPhong
-    WHERE MaPhanPhong = @MaPhanPhong;
-
-    IF @TT IS NULL
-        THROW 50141, N'Không tìm thấy bản ghi phân phòng.', 1;
-    IF @TT <> N'Đang ở'
-        THROW 50142, N'Sinh viên không còn ở phòng này.', 1;
-    IF @MaPhongCu = @MaPhongMoi
-        THROW 50143, N'Phòng mới trùng phòng hiện tại.', 1;
-    IF NOT EXISTS (SELECT 1 FROM dbo.Phong WHERE MaPhong = @MaPhongMoi AND TrangThai = N'Hoạt động')
-        THROW 50144, N'Phòng mới không tồn tại hoặc không Hoạt động.', 1;
-    IF EXISTS (SELECT 1 FROM dbo.ChuyenPhong
-               WHERE MaPhanPhong = @MaPhanPhong AND TrangThai = N'Chờ duyệt')
-        THROW 50145, N'Đã có yêu cầu chuyển phòng đang chờ duyệt.', 1;
-
-    INSERT INTO dbo.ChuyenPhong (MaPhanPhong, MaPhongMoi, LyDo, NgayYeuCau, TrangThai)
-    VALUES (@MaPhanPhong, @MaPhongMoi, @LyDo, CAST(GETDATE() AS DATE), N'Chờ duyệt');
-
-    SET @MaChuyenPhong = SCOPE_IDENTITY();
-END
-GO
-
-
--- Từ chối, hoặc duyệt và thực hiện luôn: đóng dòng cũ, mở dòng mới, chuyển hợp đồng
-CREATE OR ALTER PROCEDURE dbo.sp_ChuyenPhong_XuLy
-    @MaChuyenPhong INT,
-    @ChapNhan      BIT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRY
-        BEGIN TRAN;
-
-        DECLARE @Today DATE = CAST(GETDATE() AS DATE);
-        DECLARE @MaPhanPhong INT, @MaPhongMoi INT, @TT NVARCHAR(30);
-
-        SELECT @MaPhanPhong = MaPhanPhong, @MaPhongMoi = MaPhongMoi, @TT = TrangThai
-        FROM dbo.ChuyenPhong WITH (UPDLOCK)
-        WHERE MaChuyenPhong = @MaChuyenPhong;
-
-        IF @TT IS NULL
-            THROW 50151, N'Yêu cầu chuyển phòng không tồn tại.', 1;
-        IF @TT <> N'Chờ duyệt'
-            THROW 50152, N'Yêu cầu không ở trạng thái Chờ duyệt.', 1;
-
-        IF @ChapNhan = 0
-        BEGIN
-            UPDATE dbo.ChuyenPhong
-            SET TrangThai = N'Từ chối', NgayXuLy = @Today
-            WHERE MaChuyenPhong = @MaChuyenPhong;
-        END
-        ELSE
-        BEGIN
-            DECLARE @MaSV VARCHAR(15), @NgayBatDau DATE, @NgayKetThuc DATE,
-                    @TTPP NVARCHAR(30), @NgayChuyen DATE, @MaPhanPhongMoi INT;
-
-            SELECT @MaSV = MaSV, @NgayBatDau = NgayBatDau,
-                   @NgayKetThuc = NgayKetThuc, @TTPP = TrangThai
-            FROM dbo.PhanPhong WITH (UPDLOCK)
-            WHERE MaPhanPhong = @MaPhanPhong;
-
-            IF @TTPP <> N'Đang ở'
-                THROW 50153, N'Sinh viên không còn ở phòng cũ.', 1;
-
-            IF NOT EXISTS (SELECT 1 FROM dbo.Phong WITH (UPDLOCK, HOLDLOCK)
-                           WHERE MaPhong = @MaPhongMoi AND TrangThai = N'Hoạt động')
-                THROW 50154, N'Phòng mới không Hoạt động.', 1;
-            IF dbo.fn_SoChoTrong(@MaPhongMoi) <= 0
-                THROW 50155, N'Phòng mới đã hết chỗ.', 1;
-
-            SET @NgayChuyen = CASE WHEN @Today < @NgayBatDau THEN @NgayBatDau ELSE @Today END;
-
-            UPDATE dbo.PhanPhong
-            SET TrangThai = N'Đã chuyển phòng', NgayKetThuc = @NgayChuyen
-            WHERE MaPhanPhong = @MaPhanPhong;
-
-            INSERT INTO dbo.PhanPhong (MaSV, MaPhong, MaDangKy, NgayBatDau, NgayKetThuc, TrangThai)
-            VALUES (@MaSV, @MaPhongMoi, NULL, @NgayChuyen, @NgayKetThuc, N'Đang ở');
-            SET @MaPhanPhongMoi = SCOPE_IDENTITY();
-
-            -- Hợp đồng còn hiệu lực chuyển sang dòng phân phòng mới
-            UPDATE dbo.HopDong
-            SET MaPhanPhong = @MaPhanPhongMoi
-            WHERE MaPhanPhong = @MaPhanPhong
-              AND TrangThai = N'Có hiệu lực';
-
-            UPDATE dbo.ChuyenPhong
-            SET TrangThai = N'Hoàn thành', NgayXuLy = @Today
-            WHERE MaChuyenPhong = @MaChuyenPhong;
-        END
-
-        COMMIT;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK;
-        THROW;
-    END CATCH
-END
-GO
-
-
--- TRẢ PHÒNG
-CREATE OR ALTER PROCEDURE dbo.sp_TraPhong_YeuCau
-    @MaPhanPhong INT,
-    @LyDo        NVARCHAR(500),
-    @MaTraPhong  INT = NULL OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DECLARE @TT NVARCHAR(30);
-    SELECT @TT = TrangThai FROM dbo.PhanPhong WHERE MaPhanPhong = @MaPhanPhong;
-
-    IF @TT IS NULL
-        THROW 50161, N'Không tìm thấy bản ghi phân phòng.', 1;
-    IF @TT <> N'Đang ở'
-        THROW 50162, N'Sinh viên không còn ở phòng này.', 1;
-    IF EXISTS (SELECT 1 FROM dbo.TraPhong
-               WHERE MaPhanPhong = @MaPhanPhong AND TrangThai = N'Chờ duyệt')
-        THROW 50163, N'Đã có yêu cầu trả phòng đang chờ duyệt.', 1;
-
-    INSERT INTO dbo.TraPhong (MaPhanPhong, LyDo, NgayYeuCau, TrangThai)
-    VALUES (@MaPhanPhong, @LyDo, CAST(GETDATE() AS DATE), N'Chờ duyệt');
-
-    SET @MaTraPhong = SCOPE_IDENTITY();
-END
-GO
-
-
--- Từ chối, hoặc duyệt và hoàn tất: kiểm kê, trả phòng, thanh lý hợp đồng
-CREATE OR ALTER PROCEDURE dbo.sp_TraPhong_XuLy
-    @MaTraPhong    INT,
-    @ChapNhan      BIT,
-    @NgayTra       DATE          = NULL,
-    @KetQuaKiemKe  NVARCHAR(500) = NULL
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRY
-        BEGIN TRAN;
-
-        DECLARE @MaPhanPhong INT, @TT NVARCHAR(30);
-
-        SELECT @MaPhanPhong = MaPhanPhong, @TT = TrangThai
-        FROM dbo.TraPhong WITH (UPDLOCK)
-        WHERE MaTraPhong = @MaTraPhong;
-
-        IF @TT IS NULL
-            THROW 50171, N'Yêu cầu trả phòng không tồn tại.', 1;
-        IF @TT <> N'Chờ duyệt'
-            THROW 50172, N'Yêu cầu không ở trạng thái Chờ duyệt.', 1;
-
-        IF @ChapNhan = 0
-        BEGIN
-            UPDATE dbo.TraPhong SET TrangThai = N'Từ chối' WHERE MaTraPhong = @MaTraPhong;
-        END
-        ELSE
-        BEGIN
-            SET @NgayTra = COALESCE(@NgayTra, CAST(GETDATE() AS DATE));
-
-            IF EXISTS (SELECT 1 FROM dbo.HoaDon h
-                       WHERE h.MaPhanPhong = @MaPhanPhong
-                         AND h.TrangThai <> N'Đã hủy'
-                         AND dbo.fn_ConNo(h.MaHoaDon) > 0)
-                THROW 50173, N'Sinh viên còn công nợ chưa thanh toán, chưa thể trả phòng.', 1;
-
-            UPDATE dbo.PhanPhong
-            SET TrangThai = N'Đã trả phòng',
-                NgayKetThuc = CASE WHEN @NgayTra < NgayBatDau THEN NgayBatDau ELSE @NgayTra END
-            WHERE MaPhanPhong = @MaPhanPhong;
-
-            UPDATE dbo.HopDong
-            SET TrangThai = N'Đã thanh lý'
-            WHERE MaPhanPhong = @MaPhanPhong
-              AND TrangThai IN (N'Có hiệu lực', N'Hết hạn');
-
-            UPDATE dbo.TraPhong
-            SET TrangThai = N'Hoàn thành', NgayTra = @NgayTra, KetQuaKiemKe = @KetQuaKiemKe
-            WHERE MaTraPhong = @MaTraPhong;
-        END
-
-        COMMIT;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK;
-        THROW;
-    END CATCH
-END
-GO
-
-
 -- HỢP ĐỒNG
 -- Ngày bắt đầu/kết thúc nằm ở PhanPhong;
--- gia hạn được duyệt thì cập nhật PhanPhong.NgayKetThuc.
 
 -- Tra cứu hợp đồng; @SapHetHanTrongNgay = N: hợp đồng còn hiệu lực hết hạn trong N ngày tới
 CREATE OR ALTER PROCEDURE dbo.sp_HopDong_TraCuu
@@ -515,91 +308,6 @@ END
 GO
 
 
-CREATE OR ALTER PROCEDURE dbo.sp_GiaHan_YeuCau
-    @MaHopDong       INT,
-    @NgayKetThucMoi  DATE,
-    @MaGiaHan        INT = NULL OUTPUT
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    DECLARE @TTHopDong NVARCHAR(30), @TTPhanPhong NVARCHAR(30), @NgayKetThuc DATE;
-
-    SELECT @TTHopDong = hd.TrangThai, @TTPhanPhong = pp.TrangThai, @NgayKetThuc = pp.NgayKetThuc
-    FROM dbo.HopDong hd
-    JOIN dbo.PhanPhong pp ON pp.MaPhanPhong = hd.MaPhanPhong
-    WHERE hd.MaHopDong = @MaHopDong;
-
-    IF @TTHopDong IS NULL
-        THROW 50181, N'Không tìm thấy hợp đồng.', 1;
-    IF @TTHopDong NOT IN (N'Có hiệu lực', N'Hết hạn') OR @TTPhanPhong <> N'Đang ở'
-        THROW 50182, N'Hợp đồng không thể gia hạn (đã thanh lý/hủy hoặc sinh viên đã rời KTX).', 1;
-    IF @NgayKetThuc IS NULL OR @NgayKetThucMoi <= @NgayKetThuc
-        THROW 50183, N'Ngày kết thúc mới phải sau ngày kết thúc hiện tại.', 1;
-    IF EXISTS (SELECT 1 FROM dbo.GiaHanHopDong
-               WHERE MaHopDong = @MaHopDong AND TrangThai = N'Chờ duyệt')
-        THROW 50184, N'Hợp đồng đã có yêu cầu gia hạn đang chờ duyệt.', 1;
-
-    INSERT INTO dbo.GiaHanHopDong (MaHopDong, NgayYeuCau, NgayBatDauMoi, NgayKetThucMoi, TrangThai)
-    VALUES (@MaHopDong, CAST(GETDATE() AS DATE), @NgayKetThuc, @NgayKetThucMoi, N'Chờ duyệt');
-
-    SET @MaGiaHan = SCOPE_IDENTITY();
-END
-GO
-
-
-CREATE OR ALTER PROCEDURE dbo.sp_GiaHan_Duyet
-    @MaGiaHan  INT,
-    @ChapNhan  BIT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SET XACT_ABORT ON;
-    BEGIN TRY
-        BEGIN TRAN;
-
-        DECLARE @MaHopDong INT, @NgayKetThucMoi DATE, @TT NVARCHAR(30);
-
-        SELECT @MaHopDong = MaHopDong, @NgayKetThucMoi = NgayKetThucMoi, @TT = TrangThai
-        FROM dbo.GiaHanHopDong WITH (UPDLOCK)
-        WHERE MaGiaHan = @MaGiaHan;
-
-        IF @TT IS NULL
-            THROW 50191, N'Yêu cầu gia hạn không tồn tại.', 1;
-        IF @TT <> N'Chờ duyệt'
-            THROW 50192, N'Yêu cầu không ở trạng thái Chờ duyệt.', 1;
-
-        IF @ChapNhan = 0
-        BEGIN
-            UPDATE dbo.GiaHanHopDong SET TrangThai = N'Từ chối' WHERE MaGiaHan = @MaGiaHan;
-        END
-        ELSE
-        BEGIN
-            UPDATE pp
-            SET pp.NgayKetThuc = @NgayKetThucMoi
-            FROM dbo.PhanPhong pp
-            JOIN dbo.HopDong hd ON hd.MaPhanPhong = pp.MaPhanPhong
-            WHERE hd.MaHopDong = @MaHopDong
-              AND pp.TrangThai = N'Đang ở'
-              AND (pp.NgayKetThuc IS NULL OR pp.NgayKetThuc < @NgayKetThucMoi);
-
-            IF @@ROWCOUNT = 0
-                THROW 50193, N'Không thể áp dụng gia hạn (sinh viên đã rời KTX hoặc ngày kết thúc không hợp lệ).', 1;
-
-            UPDATE dbo.HopDong SET TrangThai = N'Có hiệu lực' WHERE MaHopDong = @MaHopDong;
-            UPDATE dbo.GiaHanHopDong SET TrangThai = N'Đã duyệt' WHERE MaGiaHan = @MaGiaHan;
-        END
-
-        COMMIT;
-    END TRY
-    BEGIN CATCH
-        IF @@TRANCOUNT > 0 ROLLBACK;
-        THROW;
-    END CATCH
-END
-GO
-
-
 -- hóa đơn chưa trả quá hạn -> 'Quá hạn'
 CREATE OR ALTER PROCEDURE dbo.sp_CapNhatTrangThaiDinhKy
 AS
@@ -618,6 +326,45 @@ BEGIN
     SET TrangThai = N'Quá hạn'
     WHERE TrangThai = N'Chưa thanh toán'
       AND HanThanhToan < @Today;
+END
+GO
+
+
+-- Procedure kết thúc thời gian ở / thanh lý hợp đồng khi hết hạn
+CREATE OR ALTER PROCEDURE dbo.sp_KetThucPhanPhong
+    @MaPhanPhong INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        -- Kiểm tra nợ trước khi cho sinh viên rời KTX
+        IF EXISTS (SELECT 1 FROM dbo.HoaDon h
+                   WHERE h.MaPhanPhong = @MaPhanPhong
+                     AND h.TrangThai <> N'Đã hủy'
+                     AND dbo.fn_ConNo(h.MaHoaDon) > 0)
+            THROW 50173, N'Sinh viên còn công nợ chưa thanh toán, chưa thể kết thúc ở KTX.', 1;
+
+        -- Cập nhật trạng thái phân phòng
+        UPDATE dbo.PhanPhong
+        SET TrangThai = N'Đã kết thúc',
+            NgayKetThuc = CAST(GETDATE() AS DATE)
+        WHERE MaPhanPhong = @MaPhanPhong AND TrangThai = N'Đang ở';
+
+        -- Thanh lý hợp đồng tương ứng
+        UPDATE dbo.HopDong
+        SET TrangThai = N'Đã thanh lý'
+        WHERE MaPhanPhong = @MaPhanPhong AND TrangThai IN (N'Có hiệu lực', N'Hết hạn');
+
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK;
+        THROW;
+    END CATCH
 END
 GO
 

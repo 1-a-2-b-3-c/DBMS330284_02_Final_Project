@@ -91,48 +91,7 @@ CREATE TABLE HopDong
 GO
 
 
--- 8. GIA HAN HOP DONG
-CREATE TABLE GiaHanHopDong
-(
-    MaGiaHan INT IDENTITY(1, 1) NOT NULL,
-    MaHopDong INT NOT NULL,
-    NgayYeuCau DATE NOT NULL,
-    NgayBatDauMoi DATE NOT NULL,
-    NgayKetThucMoi DATE NOT NULL,
-    TrangThai NVARCHAR(30) NOT NULL
-)
-GO
-
-
--- 9. CHUYEN PHONG
-CREATE TABLE ChuyenPhong
-(
-    MaChuyenPhong INT IDENTITY(1, 1) NOT NULL,
-    MaPhanPhong INT NOT NULL,
-    MaPhongMoi INT NOT NULL,
-    LyDo NVARCHAR(500) NOT NULL,
-    NgayYeuCau DATE NOT NULL,
-    NgayXuLy DATE NULL,
-    TrangThai NVARCHAR(30) NOT NULL
-)
-GO
-
-
--- 10. TRA PHONG
-CREATE TABLE TraPhong
-(
-    MaTraPhong INT IDENTITY(1, 1)  NOT NULL,
-    MaPhanPhong INT NOT NULL,
-    LyDo NVARCHAR(500) NOT NULL,
-    NgayYeuCau DATE NOT NULL,
-    NgayTra DATE NULL,
-    KetQuaKiemKe NVARCHAR(500) NULL,
-    TrangThai NVARCHAR(30) NOT NULL
-)
-GO
-
-
--- 11. KHOAN THU
+-- 8. KHOAN THU
 CREATE TABLE KhoanThu
 (
     MaKhoanThu INT IDENTITY(1, 1) NOT NULL,
@@ -144,7 +103,7 @@ CREATE TABLE KhoanThu
 GO
 
 
--- 12. HOA DON
+-- 9. HOA DON
 CREATE TABLE HoaDon
 (
     MaHoaDon INT IDENTITY(1, 1) NOT NULL,
@@ -158,7 +117,7 @@ CREATE TABLE HoaDon
 GO
 
 
--- 13. CHI TIET HOA DON
+-- 10. CHI TIET HOA DON
 CREATE TABLE ChiTietHoaDon
 (
     MaHoaDon INT NOT NULL,
@@ -170,7 +129,7 @@ CREATE TABLE ChiTietHoaDon
 GO
 
 
--- 14. THANH TOAN
+-- 11. THANH TOAN
 CREATE TABLE ThanhToan
 (
     MaThanhToan INT IDENTITY(1, 1) NOT NULL,
@@ -184,7 +143,7 @@ CREATE TABLE ThanhToan
 GO
 
 
--- 15. VI PHAM
+-- 12. VI PHAM
 CREATE TABLE ViPham
 (
     MaViPham INT IDENTITY(1, 1) NOT NULL,
@@ -199,7 +158,7 @@ CREATE TABLE ViPham
 GO
 
 
--- 16. VAI TRO
+-- 13. VAI TRO
 CREATE TABLE VaiTro
 (
     MaVaiTro VARCHAR(10) NOT NULL,
@@ -208,7 +167,7 @@ CREATE TABLE VaiTro
 GO
 
 
--- 17. TAI KHOAN
+-- 14. TAI KHOAN
 CREATE TABLE TaiKhoan
 (
     MaTaiKhoan VARCHAR(15) NOT NULL,

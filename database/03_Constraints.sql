@@ -195,8 +195,7 @@ CHECK
     TrangThai IN
     (
         N'Đang ở',
-        N'Đã chuyển phòng',
-        N'Đã trả phòng'
+        N'Đã kết thúc'
     )
 )
 GO
@@ -243,149 +242,7 @@ CHECK
 GO
 
 
--- 8. GIA HAN HOP DONG
-ALTER TABLE GiaHanHopDong
-ADD CONSTRAINT PK_GiaHanHopDong
-PRIMARY KEY (MaGiaHan)
-GO
-
-ALTER TABLE GiaHanHopDong
-ADD CONSTRAINT FK_GiaHanHopDong_HopDong
-FOREIGN KEY (MaHopDong)
-REFERENCES HopDong(MaHopDong)
-GO
-
-ALTER TABLE GiaHanHopDong
-ADD CONSTRAINT DF_GiaHanHopDong_NgayYeuCau
-DEFAULT GETDATE() FOR NgayYeuCau
-GO
-
-ALTER TABLE GiaHanHopDong
-ADD CONSTRAINT DF_GiaHanHopDong_TrangThai
-DEFAULT N'Chờ duyệt' FOR TrangThai
-GO
-
-ALTER TABLE GiaHanHopDong
-ADD CONSTRAINT CK_GiaHanHopDong_Ngay
-CHECK
-(
-    NgayKetThucMoi > NgayBatDauMoi
-)
-GO
-
-ALTER TABLE GiaHanHopDong
-ADD CONSTRAINT CK_GiaHanHopDong_TrangThai
-CHECK
-(
-    TrangThai IN
-    (
-        N'Chờ duyệt',
-        N'Đã duyệt',
-        N'Từ chối'
-    )
-)
-GO
-
-
--- 9. CHUYEN PHONG
-ALTER TABLE ChuyenPhong
-ADD CONSTRAINT PK_ChuyenPhong
-PRIMARY KEY (MaChuyenPhong)
-GO
-
-ALTER TABLE ChuyenPhong
-ADD CONSTRAINT FK_ChuyenPhong_PhanPhong
-FOREIGN KEY (MaPhanPhong)
-REFERENCES PhanPhong(MaPhanPhong)
-GO
-
-ALTER TABLE ChuyenPhong
-ADD CONSTRAINT FK_ChuyenPhong_PhongMoi
-FOREIGN KEY (MaPhongMoi)
-REFERENCES Phong(MaPhong)
-GO
-
-ALTER TABLE ChuyenPhong
-ADD CONSTRAINT DF_ChuyenPhong_NgayYeuCau
-DEFAULT GETDATE() FOR NgayYeuCau
-GO
-
-ALTER TABLE ChuyenPhong
-ADD CONSTRAINT DF_ChuyenPhong_TrangThai
-DEFAULT N'Chờ duyệt' FOR TrangThai
-GO
-
-ALTER TABLE ChuyenPhong
-ADD CONSTRAINT CK_ChuyenPhong_TrangThai
-CHECK
-(
-    TrangThai IN
-    (
-        N'Chờ duyệt',
-        N'Đã duyệt',
-        N'Từ chối',
-        N'Hoàn thành'
-    )
-)
-GO
-
-ALTER TABLE ChuyenPhong
-ADD CONSTRAINT CK_ChuyenPhong_NgayXuLy
-CHECK
-(
-    NgayXuLy IS NULL
-    OR NgayXuLy >= NgayYeuCau
-)
-GO
-
-
--- 10. TRA PHONG
-ALTER TABLE TraPhong
-ADD CONSTRAINT PK_TraPhong
-PRIMARY KEY (MaTraPhong)
-GO
-
-ALTER TABLE TraPhong
-ADD CONSTRAINT FK_TraPhong_PhanPhong
-FOREIGN KEY (MaPhanPhong)
-REFERENCES PhanPhong(MaPhanPhong)
-GO
-
-ALTER TABLE TraPhong
-ADD CONSTRAINT DF_TraPhong_NgayYeuCau
-DEFAULT GETDATE() FOR NgayYeuCau
-GO
-
-ALTER TABLE TraPhong
-ADD CONSTRAINT DF_TraPhong_TrangThai
-DEFAULT N'Chờ duyệt' FOR TrangThai
-GO
-
-ALTER TABLE TraPhong
-ADD CONSTRAINT CK_TraPhong_TrangThai
-CHECK
-(
-    TrangThai IN
-    (
-        N'Chờ duyệt',
-        N'Đã duyệt',
-        N'Từ chối',
-        N'Hoàn thành'
-    )
-)
-GO
-
-ALTER TABLE TraPhong
-ADD CONSTRAINT CK_TraPhong_NgayTra
-CHECK
-(
-    NgayTra IS NULL
-    OR NgayTra >= NgayYeuCau
-)
-GO
-
-
--- 11. KHOAN THU
+-- 8. KHOAN THU
 ALTER TABLE KhoanThu
 ADD CONSTRAINT PK_KhoanThu
 PRIMARY KEY (MaKhoanThu)
@@ -407,7 +264,7 @@ CHECK (DonGiaMacDinh >= 0)
 GO
 
 
--- 12. HOA DON
+-- 9. HOA DON
 ALTER TABLE HoaDon
 ADD CONSTRAINT PK_HoaDon
 PRIMARY KEY (MaHoaDon)
@@ -467,7 +324,7 @@ CHECK
 GO
 
 
--- 13. CHI TIET HOA DON
+-- 10. CHI TIET HOA DON
 ALTER TABLE ChiTietHoaDon
 ADD CONSTRAINT PK_ChiTietHoaDon
 PRIMARY KEY (MaHoaDon, MaKhoanThu)
@@ -511,7 +368,7 @@ CHECK (MienGiam >= 0)
 GO
 
 
--- 14. THANH TOAN
+-- 11. THANH TOAN
 ALTER TABLE ThanhToan
 ADD CONSTRAINT PK_ThanhToan
 PRIMARY KEY (MaThanhToan)
@@ -565,7 +422,7 @@ CHECK
 GO
 
 
--- 15. VI PHAM
+-- 12. VI PHAM
 ALTER TABLE ViPham
 ADD CONSTRAINT PK_ViPham
 PRIMARY KEY (MaViPham)
@@ -621,7 +478,7 @@ CHECK
 GO
 
 
--- 16. VAI TRO
+-- 13. VAI TRO
 ALTER TABLE VaiTro
 ADD CONSTRAINT PK_VaiTro
 PRIMARY KEY (MaVaiTro)
@@ -633,7 +490,7 @@ UNIQUE (TenVaiTro)
 GO
 
 
--- 17. TAI KHOAN
+-- 14. TAI KHOAN
 ALTER TABLE TaiKhoan
 ADD CONSTRAINT PK_TaiKhoan
 PRIMARY KEY (MaTaiKhoan)
