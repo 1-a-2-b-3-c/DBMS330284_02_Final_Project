@@ -81,20 +81,6 @@ public class MeController : ControllerBase
     public IActionResult HopDong([FromQuery] int? sapHetHanTrongNgay)
         => Ok(_hopDong.TraCuu(MaSV, null, sapHetHanTrongNgay));
 
-    // POST /api/me/giahan
-    [HttpPost("giahan")]
-    public IActionResult YeuCauGiaHan([FromBody] YeuCauGiaHanRequest req)
-    {
-        // Hợp đồng phải thuộc về chính sinh viên này
-        var cuaToi = _hopDong.TraCuu(MaSV, null, null)
-            .Any(h => h.TryGetValue("maHopDong", out var v) && v is not null && Convert.ToInt32(v) == req.MaHopDong);
-        if (!cuaToi)
-            return NotFound(new { message = "Không tìm thấy hợp đồng." });
-
-        var ma = _hopDong.GiaHanYeuCau(req.MaHopDong, req.NgayKetThucMoi);
-        return Ok(new { message = "Đã gửi yêu cầu gia hạn.", maGiaHan = ma });
-    }
-
     // ===== Hóa đơn và thanh toán =====
 
     // GET /api/me/hoadon
