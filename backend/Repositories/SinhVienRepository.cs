@@ -1,7 +1,5 @@
-using System.Data;
-using Backend.Data.Database;
+using Backend.Data;
 using Backend.Dtos;
-using Microsoft.Data.SqlClient;
 
 namespace Backend.Repositories;
 
@@ -13,10 +11,7 @@ public class SinhVienRepository
         var ds = new List<SinhVienDto>();
         using var conn = Database.GetConnection();
         conn.Open();
-        using var cmd = new SqlCommand("dbo.sp_SinhVien_TraCuu", conn)
-        {
-            CommandType = CommandType.StoredProcedure
-        };
+        using var cmd = conn.Proc("dbo.sp_SinhVien_TraCuu");
         cmd.AddParam("@MaSV", maSV);
         cmd.AddParam("@HoTen", hoTen);
         cmd.AddParam("@Khoa", khoa);
@@ -42,21 +37,21 @@ public class SinhVienRepository
         return ds;
     }
 
-    // sp_SinhVien_Them
-    public void Them(ThemSinhVienRequest req)
+    // sp_SinhVien_ThemKemTaiKhoan: thêm sinh viên và tài khoản trong cùng một transaction
+    // (procedure này gọi sp_SinhVien_Them và sp_TaiKhoan_Them bên trong)
+    public void ThemKemTaiKhoan(ThemSinhVienRequest req, string matKhauHash, string maVaiTro)
     {
         using var conn = Database.GetConnection();
         conn.Open();
-        using var cmd = new SqlCommand("dbo.sp_SinhVien_Them", conn)
-        {
-            CommandType = CommandType.StoredProcedure
-        };
+        using var cmd = conn.Proc("dbo.sp_SinhVien_ThemKemTaiKhoan");
         cmd.AddParam("@MaSV", req.MaSV);
         cmd.AddParam("@HoTen", req.HoTen);
         cmd.AddParam("@NgaySinh", req.NgaySinh);
         cmd.AddParam("@GioiTinh", req.GioiTinh);
         cmd.AddParam("@SDT", req.SDT);
         cmd.AddParam("@NamHoc", req.NamHoc);
+        cmd.AddParam("@MatKhauHash", matKhauHash);
+        cmd.AddParam("@MaVaiTro", maVaiTro);
         cmd.AddParam("@QueQuan", req.QueQuan);
         cmd.AddParam("@CCCD", req.CCCD);
         cmd.AddParam("@Khoa", req.Khoa);
@@ -69,10 +64,7 @@ public class SinhVienRepository
     {
         using var conn = Database.GetConnection();
         conn.Open();
-        using var cmd = new SqlCommand("dbo.sp_SinhVien_CapNhat", conn)
-        {
-            CommandType = CommandType.StoredProcedure
-        };
+        using var cmd = conn.Proc("dbo.sp_SinhVien_CapNhat");
         cmd.AddParam("@MaSV", maSV);
         cmd.AddParam("@SDT", req.SDT);
         cmd.AddParam("@QueQuan", req.QueQuan);
