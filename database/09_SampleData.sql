@@ -43,9 +43,6 @@ DELETE FROM dbo.ThanhToan;
 UPDATE dbo.HoaDon SET TrangThai = N'Chưa thanh toán';
 DELETE FROM dbo.ChiTietHoaDon;
 DELETE FROM dbo.HoaDon;
-DELETE FROM dbo.TraPhong;
-DELETE FROM dbo.ChuyenPhong;
-DELETE FROM dbo.GiaHanHopDong;
 DELETE FROM dbo.HopDong;
 DELETE FROM dbo.PhanPhong;
 DELETE FROM dbo.DangKyKTX;
@@ -171,9 +168,9 @@ INSERT INTO dbo.PhanPhong (MaPhanPhong, MaSV, MaPhong, MaDangKy, NgayBatDau, Nga
     (4, 'SV004', 3, 4, DATEADD(DAY,-120,@Today), DATEADD(DAY,-6,@Today), N'Đang ở'),
     (5, 'SV005', 4, 5, DATEADD(DAY,-45,@Today), DATEADD(DAY,200,@Today), N'Đang ở'),
     (6, 'SV006', 4, 6, DATEADD(DAY,-45,@Today), DATEADD(DAY,200,@Today), N'Đang ở'),
-    (7, 'SV007', 5, 7, DATEADD(DAY,-100,@Today), DATEADD(DAY,-20,@Today), N'Đã chuyển phòng'),
+    (7, 'SV007', 5, 7, DATEADD(DAY,-100,@Today), DATEADD(DAY,-20,@Today), N'Đã kết thúc'),
     (8, 'SV007', 7, NULL, DATEADD(DAY,-20,@Today), DATEADD(DAY,200,@Today), N'Đang ở'),
-    (9, 'SV008', 2, 8, DATEADD(DAY,-400,@Today), DATEADD(DAY,-100,@Today), N'Đã trả phòng');
+    (9, 'SV008', 2, 8, DATEADD(DAY,-400,@Today), DATEADD(DAY,-100,@Today), N'Đã kết thúc');
 SET IDENTITY_INSERT dbo.PhanPhong OFF;
 
 -- 7. HOP DONG
@@ -188,30 +185,6 @@ INSERT INTO dbo.HopDong (MaHopDong, MaPhanPhong, DieuKhoan, TrangThai) VALUES
     (7, 8, N'Sinh viên chấp hành nội quy KTX, thanh toán đầy đủ các khoản phí đúng hạn, giữ gìn tài sản chung và không tự ý chuyển nhượng chỗ ở.', N'Có hiệu lực'),
     (8, 9, N'Sinh viên chấp hành nội quy KTX, thanh toán đầy đủ các khoản phí đúng hạn, giữ gìn tài sản chung và không tự ý chuyển nhượng chỗ ở.', N'Đã thanh lý');
 SET IDENTITY_INSERT dbo.HopDong OFF;
-
--- 8. GIA HAN HOP DONG
-SET IDENTITY_INSERT dbo.GiaHanHopDong ON;
-INSERT INTO dbo.GiaHanHopDong (MaGiaHan, MaHopDong, NgayYeuCau, NgayBatDauMoi, NgayKetThucMoi, TrangThai) VALUES
-    (1, 2, DATEADD(DAY,-3,@Today), DATEADD(DAY,14,@Today), DATEADD(DAY,194,@Today), N'Chờ duyệt'),
-    (2, 8, DATEADD(DAY,-260,@Today), DATEADD(DAY,-250,@Today), DATEADD(DAY,-100,@Today), N'Đã duyệt'),
-    (3, 3, DATEADD(DAY,-30,@Today), DATEADD(DAY,200,@Today), DATEADD(DAY,320,@Today), N'Từ chối');
-SET IDENTITY_INSERT dbo.GiaHanHopDong OFF;
-
--- 9. CHUYEN PHONG
-SET IDENTITY_INSERT dbo.ChuyenPhong ON;
-INSERT INTO dbo.ChuyenPhong (MaChuyenPhong, MaPhanPhong, MaPhongMoi, LyDo, NgayYeuCau, NgayXuLy, TrangThai) VALUES
-    (1, 5, 2, N'Muốn ở gần khoa hơn', DATEADD(DAY,-2,@Today), NULL, N'Chờ duyệt'),
-    (2, 7, 7, N'Phòng cũ ồn ào, ảnh hưởng việc học', DATEADD(DAY,-25,@Today), DATEADD(DAY,-20,@Today), N'Hoàn thành'),
-    (3, 1, 7, N'Muốn ở cùng bạn cùng lớp', DATEADD(DAY,-40,@Today), DATEADD(DAY,-38,@Today), N'Từ chối');
-SET IDENTITY_INSERT dbo.ChuyenPhong OFF;
-
--- 10. TRA PHONG
-SET IDENTITY_INSERT dbo.TraPhong ON;
-INSERT INTO dbo.TraPhong (MaTraPhong, MaPhanPhong, LyDo, NgayYeuCau, NgayTra, KetQuaKiemKe, TrangThai) VALUES
-    (1, 6, N'Chuyển ra ở trọ gần trường', DATEADD(DAY,-1,@Today), NULL, NULL, N'Chờ duyệt'),
-    (2, 9, N'Bị buộc rời KTX do vi phạm nội quy', DATEADD(DAY,-110,@Today), DATEADD(DAY,-100,@Today), N'Phòng nguyên vẹn, thiếu 1 chìa khóa', N'Hoàn thành'),
-    (3, 4, N'Muốn trả phòng sớm', DATEADD(DAY,-20,@Today), NULL, NULL, N'Từ chối');
-SET IDENTITY_INSERT dbo.TraPhong OFF;
 
 -- 12. HOA DON (thanh toán sẽ tự cập nhật trạng thái qua trigger)
 SET IDENTITY_INSERT dbo.HoaDon ON;
@@ -295,9 +268,6 @@ SELECT N'Phong', COUNT(*) FROM dbo.Phong UNION ALL
 SELECT N'DangKyKTX', COUNT(*) FROM dbo.DangKyKTX UNION ALL
 SELECT N'PhanPhong', COUNT(*) FROM dbo.PhanPhong UNION ALL
 SELECT N'HopDong', COUNT(*) FROM dbo.HopDong UNION ALL
-SELECT N'GiaHanHopDong', COUNT(*) FROM dbo.GiaHanHopDong UNION ALL
-SELECT N'ChuyenPhong', COUNT(*) FROM dbo.ChuyenPhong UNION ALL
-SELECT N'TraPhong', COUNT(*) FROM dbo.TraPhong UNION ALL
 SELECT N'KhoanThu', COUNT(*) FROM dbo.KhoanThu UNION ALL
 SELECT N'HoaDon', COUNT(*) FROM dbo.HoaDon UNION ALL
 SELECT N'ChiTietHoaDon', COUNT(*) FROM dbo.ChiTietHoaDon UNION ALL
