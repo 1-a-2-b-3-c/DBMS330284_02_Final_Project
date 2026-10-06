@@ -56,6 +56,41 @@ END
 GO
 
 
+-- Xóa sinh viên (Chỉ xóa khi sinh viên chưa từng đăng ký / phân phòng / vi phạm)
+CREATE OR ALTER PROCEDURE dbo.sp_SinhVien_Xoa
+    @MaSV VARCHAR(15)
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+    
+    BEGIN TRY
+        BEGIN TRAN;
+
+        IF EXISTS (SELECT 1 FROM dbo.PhanPhong WHERE MaSV = @MaSV)
+           OR EXISTS (SELECT 1 FROM dbo.DangKyKTX WHERE MaSV = @MaSV)
+           OR EXISTS (SELECT 1 FROM dbo.ViPham WHERE MaSV = @MaSV)
+            THROW 50301, N'Sinh viên đã có dữ liệu phân phòng, đăng ký hoặc vi phạm; không được xóa.', 1;
+
+        -- Xóa tài khoản liên kết nếu có
+        DELETE FROM dbo.TaiKhoan WHERE MaSV = @MaSV;
+
+        -- Xóa sinh viên
+        DELETE FROM dbo.SinhVien WHERE MaSV = @MaSV;
+
+        IF @@ROWCOUNT = 0
+            THROW 50302, N'Không tìm thấy sinh viên cần xóa.', 1;
+
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK;
+        THROW;
+    END CATCH
+END
+GO
+
+
 CREATE OR ALTER PROCEDURE dbo.sp_SinhVien_TraCuu
     @MaSV    VARCHAR(15)   = NULL,
     @HoTen   NVARCHAR(100) = NULL,
@@ -155,6 +190,34 @@ END
 GO
 
 
+-- Sửa thông tin biên bản vi phạm
+CREATE OR ALTER PROCEDURE dbo.sp_ViPham_CapNhat
+    @MaViPham      INT,
+    @NgayViPham    DATE          = NULL,
+    @NoiDung       NVARCHAR(500) = NULL,
+    @DiaDiem       NVARCHAR(200) = NULL,
+    @HinhThucXuLy  NVARCHAR(50)  = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Không cho sửa biên bản đã xử lý
+    IF EXISTS (SELECT 1 FROM dbo.ViPham WHERE MaViPham = @MaViPham AND TrangThaiXuLy = N'Đã xử lý')
+        THROW 50303, N'Biên bản vi phạm đã xử lý, không thể chỉnh sửa.', 1;
+
+    UPDATE dbo.ViPham
+    SET NgayViPham   = COALESCE(@NgayViPham, NgayViPham),
+        NoiDung      = COALESCE(@NoiDung, NoiDung),
+        DiaDiem      = COALESCE(@DiaDiem, DiaDiem),
+        HinhThucXuLy = COALESCE(@HinhThucXuLy, HinhThucXuLy)
+    WHERE MaViPham = @MaViPham;
+
+    IF @@ROWCOUNT = 0
+        THROW 50304, N'Không tìm thấy biên bản vi phạm.', 1;
+END
+GO
+
+
 CREATE OR ALTER PROCEDURE dbo.sp_ViPham_XuLy
     @MaViPham INT
 AS
@@ -174,7 +237,8 @@ GO
 
 CREATE OR ALTER PROCEDURE dbo.sp_ViPham_TraCuu
     @MaSV           VARCHAR(15)  = NULL,
-    @TrangThaiXuLy  NVARCHAR(30) = NULL
+    @TrangThaiXuLy  NVARCHAR(30) = NULL,
+    @HinhThucXuLy   NVARCHAR(50) = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -185,7 +249,66 @@ BEGIN
     JOIN dbo.SinhVien sv ON sv.MaSV = vp.MaSV
     WHERE (@MaSV          IS NULL OR vp.MaSV = @MaSV)
       AND (@TrangThaiXuLy IS NULL OR vp.TrangThaiXuLy = @TrangThaiXuLy)
+      AND (@HinhThucXuLy  IS NULL OR vp.HinhThucXuLy = @HinhThucXuLy)
     ORDER BY vp.NgayViPham DESC, vp.MaViPham DESC;
+END
+GO
+
+
+-- Xử lý vi phạm dạng "Buộc rời KTX": Cập nhật trạng thái vi phạm, kết thúc phân phòng và thanh lý hợp đồng
+CREATE OR ALTER PROCEDURE dbo.sp_ViPham_XuLyBuocRoiKTX
+    @MaViPham INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        DECLARE @MaSV VARCHAR(15), @HinhThuc NVARCHAR(50), @MaPhanPhong INT;
+
+        SELECT @MaSV = MaSV, @HinhThuc = HinhThucXuLy
+        FROM dbo.ViPham WITH (UPDLOCK)
+        WHERE MaViPham = @MaViPham;
+
+        IF @MaSV IS NULL
+            THROW 50305, N'Không tìm thấy biên bản vi phạm.', 1;
+
+        IF @HinhThuc <> N'Buộc rời KTX'
+            THROW 50306, N'Biên bản này không thuộc hình thức Buộc rời KTX.', 1;
+
+        -- 1. Cập nhật vi phạm thành Đã xử lý
+        UPDATE dbo.ViPham 
+        SET TrangThaiXuLy = N'Đã xử lý' 
+        WHERE MaViPham = @MaViPham;
+
+        -- 2. Lấy thông tin phân phòng đang ở
+        SELECT @MaPhanPhong = MaPhanPhong
+        FROM dbo.PhanPhong WITH (UPDLOCK)
+        WHERE MaSV = @MaSV AND TrangThai = N'Đang ở';
+
+        -- 3. Nếu đang ở KTX thì tiến hành kết thúc ở và hủy/thanh lý hợp đồng
+        IF @MaPhanPhong IS NOT NULL
+        BEGIN
+            -- Cho kết thúc phân phòng
+            UPDATE dbo.PhanPhong
+            SET TrangThai = N'Đã kết thúc',
+                NgayKetThuc = CAST(GETDATE() AS DATE)
+            WHERE MaPhanPhong = @MaPhanPhong;
+
+            -- Hủy/Thanh lý hợp đồng
+            UPDATE dbo.HopDong
+            SET TrangThai = N'Đã thanh lý'
+            WHERE MaPhanPhong = @MaPhanPhong AND TrangThai IN (N'Có hiệu lực', N'Hết hạn');
+        END
+
+        COMMIT;
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK;
+        THROW;
+    END CATCH
 END
 GO
 

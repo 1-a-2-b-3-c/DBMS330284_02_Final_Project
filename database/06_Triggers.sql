@@ -37,6 +37,28 @@ END
 GO
 
 
+-- Chặn sinh viên bị "Buộc rời KTX" đăng ký ở mới hoặc xếp phòng mới
+CREATE OR ALTER TRIGGER dbo.trg_ViPham_KiemTraDangKy
+ON dbo.DangKyKTX
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF EXISTS (
+        SELECT 1 
+        FROM inserted i
+        WHERE dbo.fn_SinhVienBiBuocRoiKTX(i.MaSV) = 1
+          AND i.TrangThai IN (N'Chờ duyệt', N'Đã duyệt')
+    )
+    BEGIN
+        ROLLBACK TRANSACTION;
+        THROW 50020, N'Sinh viên đã bị buộc rời KTX do vi phạm, không thể đăng ký ở KTX.', 1;
+    END
+END
+GO
+
+
 -- PHÂN PHÒNG
 -- Chỉ xếp vào phòng đang Hoạt động
 -- Mỗi SV chỉ có 1 dòng 'Đang ở'
@@ -81,6 +103,41 @@ BEGIN
     BEGIN
         ROLLBACK TRANSACTION;
         THROW 50005, N'Phòng đã vượt quá số người tối đa.', 1;
+    END
+END
+GO
+
+
+-- VI PHẠM
+-- Kiểm tra logic dữ liệu khi thêm/sửa ViPham
+CREATE OR ALTER TRIGGER dbo.trg_ViPham_KiemTraHopLe
+ON dbo.ViPham
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Kiểm tra sinh viên có tồn tại trong hệ thống hay không
+    IF EXISTS (
+        SELECT 1 
+        FROM inserted i 
+        LEFT JOIN dbo.SinhVien sv ON sv.MaSV = i.MaSV 
+        WHERE sv.MaSV IS NULL
+    )
+    BEGIN
+        ROLLBACK TRANSACTION;
+        THROW 50021, N'Mã sinh viên không tồn tại trong hệ thống.', 1;
+    END
+
+    -- Ngày vi phạm không được lớn hơn ngày hiện tại
+    IF EXISTS (
+        SELECT 1 
+        FROM inserted 
+        WHERE NgayViPham > CAST(GETDATE() AS DATE)
+    )
+    BEGIN
+        ROLLBACK TRANSACTION;
+        THROW 50022, N'Ngày vi phạm không được vượt quá ngày hiện tại.', 1;
     END
 END
 GO
