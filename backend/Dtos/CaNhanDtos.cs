@@ -86,14 +86,6 @@ public class TaoDangKyRequest
     public string? GhiChu { get; set; }
 }
 
-public class YeuCauGiaHanRequest
-{
-    [Range(1, int.MaxValue, ErrorMessage = "Phải chọn hợp đồng.")]
-    public int MaHopDong { get; set; }
-
-    public DateOnly NgayKetThucMoi { get; set; }
-}
-
 // Khớp CK_ThanhToan_PhuongThuc và CK_ThanhToan_SoTien
 public class ThanhToanRequest
 {

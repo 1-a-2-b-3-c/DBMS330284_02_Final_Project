@@ -1,13 +1,14 @@
 using Backend.Dtos;
 using Backend.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
-// Việc của quản lý KTX (sẽ chuyển sang Controllers/QuanLyKtx và thêm kiểm tra quyền ở bước vai trò quản lý).
-// LƯU Ý: hiện chưa kiểm tra quyền nên ai cũng gọi được, kể cả POST tạo sinh viên kèm tài khoản.
+// Việc của quản lý KTX (QLKTX) và quản trị viên (ADMIN): kiểm tra bằng policy "QuanLyKtx".
 [ApiController]
-[Route("/api/ktx/sinhvien/danh-muc")]
+[Route("api/ktx/sinhvien")]
+[Authorize(Policy = "QuanLyKtx")]
 public class SinhVienController : ControllerBase
 {
     private readonly SinhVienRepository _repo = new();
@@ -15,13 +16,13 @@ public class SinhVienController : ControllerBase
 
     public SinhVienController(IConfiguration cfg) => _cfg = cfg;
 
-    // GET /api/sinhvien?maSV=&hoTen=&khoa=&namHoc=
+    // GET /api/ktx/sinhvien?maSV=&hoTen=&khoa=&namHoc=
     [HttpGet]
     public IActionResult TraCuu([FromQuery] string? maSV, [FromQuery] string? hoTen,
                                 [FromQuery] string? khoa, [FromQuery] int? namHoc)
         => Ok(_repo.TraCuu(maSV, hoTen, khoa, namHoc));
 
-    // GET /api/sinhvien/danh-muc
+    // GET /api/ktx/sinhvien/danh-muc
     // Giá trị hợp lệ cho ô chọn (dropdown) ở frontend.
     // Giữ khớp với CK_SinhVien_GioiTinh, CK_SinhVien_DienUuTien và fn_TyLeGiam.
     [HttpGet("danh-muc")]
@@ -31,7 +32,7 @@ public class SinhVienController : ControllerBase
         dienUuTien = new[] { "Con thương binh/liệt sĩ", "Hộ nghèo", "Hộ cận nghèo", "Vùng sâu vùng xa" }
     });
 
-    // GET /api/sinhvien/{maSV}
+    // GET /api/ktx/sinhvien/{maSV}
     [HttpGet("{maSV}")]
     public IActionResult LayMot(string maSV)
     {
@@ -39,7 +40,7 @@ public class SinhVienController : ControllerBase
         return sv is null ? NotFound(new { message = "Không tìm thấy sinh viên." }) : Ok(sv);
     }
 
-    // POST /api/sinhvien : thêm sinh viên và tự tạo tài khoản đăng nhập
+    // POST /api/ktx/sinhvien : thêm sinh viên và tự tạo tài khoản đăng nhập
     // Tên đăng nhập = mã sinh viên, mật khẩu ban đầu = mã sinh viên (sinh viên nên đổi sau khi đăng nhập)
     [HttpPost]
     public IActionResult Them([FromBody] ThemSinhVienRequest req)
@@ -58,7 +59,7 @@ public class SinhVienController : ControllerBase
         });
     }
 
-    // PUT /api/sinhvien/{maSV}
+    // PUT /api/ktx/sinhvien/{maSV}
     [HttpPut("{maSV}")]
     public IActionResult CapNhat(string maSV, [FromBody] CapNhatSinhVienRequest req)
     {
