@@ -44,6 +44,23 @@ public class SqlExceptionFilter : IExceptionFilter
     {
         if (context.Exception is not SqlException ex) return;
 
+        var financialError = ex.Number switch
+        {
+            50201 or 50202 or 50211 or 50231 => (Status: 404, Message: (string?)ex.Message),
+            50213 or 50221 or 50232 or 50233 => (Status: 409, Message: (string?)ex.Message),
+            50212 or 50214 => (Status: 400, Message: (string?)ex.Message),
+            _ => (Status: 0, Message: (string?)null)
+        };
+        if (financialError.Status != 0)
+        {
+            context.Result = new ObjectResult(new { message = financialError.Message })
+            {
+                StatusCode = financialError.Status
+            };
+            context.ExceptionHandled = true;
+            return;
+        }
+
         var (status, message) = ex.Number switch
         {
             50174 => (404, ex.Message),
