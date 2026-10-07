@@ -88,3 +88,21 @@ BEGIN
     RETURN dbo.fn_TongTienHoaDon(@MaHoaDon) - dbo.fn_DaThanhToan(@MaHoaDon);
 END
 GO
+
+
+-- Kiểm tra sinh viên có bị buộc rời KTX do vi phạm hay không (Trả về 1: Có, 0: Không)
+CREATE OR ALTER FUNCTION dbo.fn_SinhVienBiBuocRoiKTX (@MaSV VARCHAR(15))
+RETURNS BIT
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1 
+        FROM dbo.ViPham 
+        WHERE MaSV = @MaSV 
+          AND HinhThucXuLy = N'Buộc rời KTX'
+    )
+        RETURN 1;
+    
+    RETURN 0;
+END
+GO
