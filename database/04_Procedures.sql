@@ -739,18 +739,137 @@ END
 GO
 
 
--- Khóa (0) / mở khóa (1) tài khoản
-CREATE OR ALTER PROCEDURE dbo.sp_TaiKhoan_DatTrangThai
-    @MaTaiKhoan VARCHAR(15),
-    @TrangThai  BIT
+-- Danh sách tài khoản quản trị; không trả hash mật khẩu.
+CREATE OR ALTER PROCEDURE dbo.sp_TaiKhoan_DanhSach
+    @TuKhoa    VARCHAR(50) = NULL,
+    @MaVaiTro  VARCHAR(10) = NULL,
+    @TrangThai BIT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    UPDATE dbo.TaiKhoan SET TrangThai = @TrangThai WHERE MaTaiKhoan = @MaTaiKhoan;
+    SELECT tk.MaTaiKhoan, tk.TenDangNhap, tk.MaSV,
+           tk.MaVaiTro, vt.TenVaiTro, tk.TrangThai
+    FROM dbo.TaiKhoan tk
+    JOIN dbo.VaiTro vt ON vt.MaVaiTro = tk.MaVaiTro
+    WHERE (@TuKhoa IS NULL OR tk.TenDangNhap LIKE '%' + @TuKhoa + '%'
+                           OR tk.MaTaiKhoan LIKE '%' + @TuKhoa + '%'
+                           OR tk.MaSV LIKE '%' + @TuKhoa + '%')
+      AND (@MaVaiTro IS NULL OR tk.MaVaiTro = @MaVaiTro)
+      AND (@TrangThai IS NULL OR tk.TrangThai = @TrangThai)
+    ORDER BY tk.TenDangNhap, tk.MaTaiKhoan;
+END
+GO
+
+
+-- Dùng khi xác thực JWT để việc khóa tài khoản có hiệu lực ngay.
+CREATE OR ALTER PROCEDURE dbo.sp_TaiKhoan_KiemTraHoatDong
+    @MaTaiKhoan VARCHAR(15)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT CAST(CASE WHEN EXISTS
+    (
+        SELECT 1
+        FROM dbo.TaiKhoan
+        WHERE MaTaiKhoan = @MaTaiKhoan
+          AND TrangThai = 1
+    ) THEN 1 ELSE 0 END AS BIT);
+END
+GO
+
+
+-- Chỉ admin được tạo tài khoản nhân sự/quản trị; tài khoản sinh viên có luồng riêng.
+CREATE OR ALTER PROCEDURE dbo.sp_TaiKhoan_TaoTaiKhoanQuanLy
+    @MaTaiKhoan  VARCHAR(15),
+    @TenDangNhap VARCHAR(50),
+    @MatKhauHash VARCHAR(255),
+    @MaVaiTro    VARCHAR(10)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @MaVaiTro NOT IN ('QLKTX', 'QLTC', 'ADMIN')
+        THROW 50246, N'Chỉ được tạo tài khoản quản lý KTX, quản lý tài chính hoặc quản trị viên.', 1;
+
+    EXEC dbo.sp_TaiKhoan_Them
+        @MaTaiKhoan = @MaTaiKhoan,
+        @TenDangNhap = @TenDangNhap,
+        @MatKhauHash = @MatKhauHash,
+        @MaVaiTro = @MaVaiTro,
+        @MaSV = NULL;
+END
+GO
+
+
+-- Đặt lại mật khẩu tài khoản theo yêu cầu quản trị viên.
+CREATE OR ALTER PROCEDURE dbo.sp_TaiKhoan_Admin_DatLaiMatKhau
+    @MaTaiKhoan     VARCHAR(15),
+    @MatKhauHashMoi VARCHAR(255)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    UPDATE dbo.TaiKhoan
+    SET MatKhauHash = @MatKhauHashMoi
+    WHERE MaTaiKhoan = @MaTaiKhoan;
 
     IF @@ROWCOUNT = 0
+        THROW 50245, N'Không tìm thấy tài khoản.', 1;
+END
+GO
+
+
+-- Khóa (0) / mở khóa (1) tài khoản
+CREATE OR ALTER PROCEDURE dbo.sp_TaiKhoan_DatTrangThai
+    @MaTaiKhoan VARCHAR(15),
+    @TrangThai  BIT,
+    @MaNguoiThucHien VARCHAR(15)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SET XACT_ABORT ON;
+    BEGIN TRAN;
+
+    DECLARE @MaVaiTro VARCHAR(10), @TrangThaiHienTai BIT;
+    SELECT @MaVaiTro = MaVaiTro, @TrangThaiHienTai = TrangThai
+    FROM dbo.TaiKhoan WITH (UPDLOCK, HOLDLOCK)
+    WHERE MaTaiKhoan = @MaTaiKhoan;
+
+    IF @MaVaiTro IS NULL
+    BEGIN
+        ROLLBACK;
         THROW 50242, N'Không tìm thấy tài khoản.', 1;
+    END
+
+    IF @TrangThai = 0 AND @MaTaiKhoan = @MaNguoiThucHien
+    BEGIN
+        ROLLBACK;
+        THROW 50243, N'Không thể tự khóa tài khoản đang đăng nhập.', 1;
+    END
+
+    IF @TrangThai = 0 AND @TrangThaiHienTai = 1 AND @MaVaiTro = 'ADMIN'
+    BEGIN
+        DECLARE @SoAdminHoatDong INT;
+        SELECT @SoAdminHoatDong = COUNT(*)
+        FROM dbo.TaiKhoan WITH (UPDLOCK, HOLDLOCK)
+        WHERE MaVaiTro = 'ADMIN'
+          AND TrangThai = 1;
+
+        IF @SoAdminHoatDong <= 1
+        BEGIN
+            ROLLBACK;
+            THROW 50244, N'Không thể khóa quản trị viên đang hoạt động cuối cùng.', 1;
+        END
+    END
+
+    UPDATE dbo.TaiKhoan
+    SET TrangThai = @TrangThai
+    WHERE MaTaiKhoan = @MaTaiKhoan;
+
+    COMMIT;
 END
 GO
 

@@ -23,7 +23,7 @@ public class SqlExceptionFilter : IExceptionFilter
         ["CK_SinhVien_DienUuTien"] = "Diện ưu tiên không hợp lệ.",
 
         // Tài khoản
-        ["PK_TaiKhoan"] = "Sinh viên này đã có tài khoản.",
+        ["PK_TaiKhoan"] = "Mã tài khoản đã tồn tại.",
         ["UQ_TaiKhoan_MaSV"] = "Sinh viên này đã có tài khoản.",
         ["UQ_TaiKhoan_TenDangNhap"] = "Tên đăng nhập đã được sử dụng.",
         ["FK_TaiKhoan_SinhVien"] = "Mã sinh viên không tồn tại trong hệ thống.",
@@ -63,8 +63,8 @@ public class SqlExceptionFilter : IExceptionFilter
 
         var (status, message) = ex.Number switch
         {
-            50174 => (404, ex.Message),
-            50173 or 50175 => (409, ex.Message),
+            50174 or 50245 => (404, ex.Message),
+            50173 or 50175 or 50243 or 50244 => (409, ex.Message),
             >= 50000 => (400, ex.Message),
             2627 or 2601 => (409, TimMoTa(ex.Message) ?? "Dữ liệu bị trùng (khóa chính hoặc giá trị duy nhất đã tồn tại)."),
             547 => (400, TimMoTa(ex.Message) ?? "Dữ liệu vi phạm ràng buộc (khóa ngoại hoặc điều kiện kiểm tra)."),

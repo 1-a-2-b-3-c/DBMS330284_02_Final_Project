@@ -1,5 +1,6 @@
 using System.Text;
 using Backend.Data;
+using Backend.Repositories;
 using Backend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,7 @@ builder.Services.AddControllers(o => o.Filters.Add<Backend.SqlExceptionFilter>()
     });
 
 builder.Services.AddSingleton<TokenService>();
+builder.Services.AddScoped<TaiKhoanRepository>();
 
 // Cho phép frontend (chạy ở cổng khác) gọi API
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
@@ -43,16 +45,32 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
+        o.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var maTaiKhoan = context.Principal?.FindFirst("maTaiKhoan")?.Value;
+                if (string.IsNullOrWhiteSpace(maTaiKhoan))
+                {
+                    context.Fail("Token không chứa mã tài khoản.");
+                    return;
+                }
+
+                var repo = context.HttpContext.RequestServices.GetRequiredService<TaiKhoanRepository>();
+                if (!await repo.DangHoatDongAsync(maTaiKhoan, context.HttpContext.RequestAborted))
+                    context.Fail("Tài khoản đã bị khóa hoặc không còn tồn tại.");
+            }
+        };
     });
 
 // Chính sách "SinhVien": đã đăng nhập và tài khoản gắn với một mã sinh viên
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("SinhVien", p => p.RequireAuthenticatedUser().RequireClaim("maSV"))
-    // Chính sách "QuanLyKtx": quản lý KTX (claim maVaiTro lấy từ token)
+    // Chính sách "QuanLyKtx": chỉ quản lý KTX được dùng API nghiệp vụ KTX.
     .AddPolicy("QuanLyKtx", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "QLKTX"))
     // Chính sách "Admin": quản trị viên (claim maVaiTro lấy từ token)
     .AddPolicy("Admin", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "ADMIN"))
-    // Chính sách "Quản lý tài chính": quan lý tài chính (claim maVaiTro lấy từ token)
+    // Chính sách "QuanLyTaiChinh": chỉ quản lý tài chính được dùng API nghiệp vụ tài chính.
     .AddPolicy("QuanLyTaiChinh", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "QLTC"));
 
 var app = builder.Build();
