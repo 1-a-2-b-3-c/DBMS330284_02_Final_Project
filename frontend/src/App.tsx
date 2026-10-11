@@ -29,7 +29,7 @@ const DieuHuongTrangChu: React.FC = () => {
     return <Navigate to="/student/profile" replace />
   }
 
-  return <Navigate to="/admin/phong" replace />
+  return <Navigate to={nguoiDung?.maVaiTro === 'QLTC' ? '/admin/tai-chinh' : nguoiDung?.maVaiTro === 'ADMIN' ? '/admin/tai-khoan' : '/admin/phong'} replace />
 }
 
 /**
@@ -46,7 +46,7 @@ export function App() {
           <Route path="/login" element={<LoginPage />} />
 
           {/* Phân hệ Quản trị & Lưu trú KTX (Dành cho QLKTX và ADMIN) */}
-          <Route element={<ProtectedRoute cacVaiTroChoPhep={['QLKTX', 'ADMIN']} />}>
+          <Route element={<ProtectedRoute cacVaiTroChoPhep={['QLKTX', 'ADMIN', 'QLTC']} />}>
             <Route path="/admin" element={<AdminLayout />}>
               {dormRoutes.map((tuyenDuong) => (
                 <Route

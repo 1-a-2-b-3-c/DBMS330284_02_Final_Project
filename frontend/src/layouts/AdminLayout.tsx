@@ -6,6 +6,8 @@ import {
   ClipboardCheck,
   FileText,
   Receipt,
+  Wallet,
+  ListChecks,
   AlertTriangle,
   Shield,
   Menu,
@@ -71,6 +73,8 @@ const DANH_SACH_MENU_ADMIN: MucMenuDieuHuong[] = [
     icon: Receipt,
     nhom: 'tai-chinh',
   },
+  { tieuDe: 'Danh mục khoản thu', duongDan: '/admin/khoan-thu', icon: ListChecks, nhom: 'tai-chinh' },
+  { tieuDe: 'Thanh toán & Công nợ', duongDan: '/admin/thanh-toan', icon: Wallet, nhom: 'tai-chinh' },
   {
     tieuDe: 'Biên bản Vi phạm',
     duongDan: '/admin/vi-pham',
@@ -126,7 +130,7 @@ export const AdminLayout: React.FC = () => {
               Quản lý Lưu trú
             </div>
             <nav className="flex flex-col gap-1">
-              {DANH_SACH_MENU_ADMIN.filter((m) => m.nhom === 'luu-tru').map((muc) => {
+              {DANH_SACH_MENU_ADMIN.filter((m) => m.nhom === 'luu-tru' && (nguoiDung?.maVaiTro === 'ADMIN' ? ['tai-khoan','phong','sinh-vien','dang-ky','hop-dong'].some(s => m.duongDan.endsWith('/'+s)) : nguoiDung?.maVaiTro === 'QLTC' ? ['/admin/tai-chinh','/admin/khoan-thu','/admin/thanh-toan'].includes(m.duongDan) : ['/admin/phong','/admin/sinh-vien','/admin/dang-ky','/admin/hop-dong','/admin/vi-pham'].includes(m.duongDan))).map((muc) => {
                 const IconComponent = muc.icon
                 return (
                   <NavLink
@@ -154,7 +158,7 @@ export const AdminLayout: React.FC = () => {
               Tài chính & Kỷ luật
             </div>
             <nav className="flex flex-col gap-1">
-              {DANH_SACH_MENU_ADMIN.filter((m) => m.nhom === 'tai-chinh').map((muc) => {
+              {DANH_SACH_MENU_ADMIN.filter((m) => m.nhom === 'tai-chinh' && (nguoiDung?.maVaiTro === 'ADMIN' ? ['tai-khoan','phong','sinh-vien','dang-ky','hop-dong'].some(s => m.duongDan.endsWith('/'+s)) : nguoiDung?.maVaiTro === 'QLTC' ? ['/admin/tai-chinh','/admin/khoan-thu','/admin/thanh-toan'].includes(m.duongDan) : ['/admin/phong','/admin/sinh-vien','/admin/dang-ky','/admin/hop-dong','/admin/vi-pham'].includes(m.duongDan))).map((muc) => {
                 const IconComponent = muc.icon
                 return (
                   <NavLink
@@ -182,7 +186,7 @@ export const AdminLayout: React.FC = () => {
               Hệ thống & Phân quyền
             </div>
             <nav className="flex flex-col gap-1">
-              {DANH_SACH_MENU_ADMIN.filter((m) => m.nhom === 'he-thong').map((muc) => {
+              {DANH_SACH_MENU_ADMIN.filter((m) => m.nhom === 'he-thong' && (nguoiDung?.maVaiTro === 'ADMIN' ? ['tai-khoan','phong','sinh-vien','dang-ky','hop-dong'].some(s => m.duongDan.endsWith('/'+s)) : nguoiDung?.maVaiTro === 'QLTC' ? ['/admin/tai-chinh','/admin/khoan-thu','/admin/thanh-toan'].includes(m.duongDan) : ['/admin/phong','/admin/sinh-vien','/admin/dang-ky','/admin/hop-dong','/admin/vi-pham'].includes(m.duongDan))).map((muc) => {
                 const IconComponent = muc.icon
                 return (
                   <NavLink

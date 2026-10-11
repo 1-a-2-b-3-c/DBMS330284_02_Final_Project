@@ -5,13 +5,23 @@ namespace Backend.Repositories;
 
 public class DangKyRepository
 {
-    // sp_DangKyKTX_TraCuu: mọi tham số đều tùy chọn
+    // Tra cuu truc tiep tu DangKyKTX, SinhVien, LoaiPhong.
+    // Khong su dung sp_DangKyKTX_TraCuu; khong ghi/xoa du lieu.
     public List<DangKyDto> TraCuu(string? maSV, string? trangThai)
     {
         var ds = new List<DangKyDto>();
         using var conn = Database.GetConnection();
         conn.Open();
-        using var cmd = conn.Proc("dbo.sp_DangKyKTX_TraCuu");
+        using var cmd = conn.Query(@"
+            SELECT dk.MaDangKy, dk.MaSV, sv.HoTen,
+                   dk.MaLoaiPhong, lp.TenLoaiPhong,
+                   dk.NgayDangKy, dk.TrangThai, dk.GhiChu
+            FROM dbo.DangKyKTX AS dk
+            INNER JOIN dbo.SinhVien AS sv ON sv.MaSV = dk.MaSV
+            LEFT JOIN dbo.LoaiPhong AS lp ON lp.MaLoaiPhong = dk.MaLoaiPhong
+            WHERE (@MaSV IS NULL OR dk.MaSV = @MaSV)
+              AND (@TrangThai IS NULL OR dk.TrangThai = @TrangThai)
+            ORDER BY dk.NgayDangKy DESC, dk.MaDangKy DESC;");
         cmd.AddParam("@MaSV", maSV);
         cmd.AddParam("@TrangThai", trangThai);
 
