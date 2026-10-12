@@ -67,7 +67,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorizationBuilder()
     .AddPolicy("SinhVien", p => p.RequireAuthenticatedUser().RequireClaim("maSV"))
     // Chính sách "QuanLyKtx": chỉ quản lý KTX được dùng API nghiệp vụ KTX.
-    .AddPolicy("QuanLyKtx", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "QLKTX"))
+    .AddPolicy("QuanLyKtx", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "QLKTX", "ADMIN"))
     // Chính sách "Admin": quản trị viên (claim maVaiTro lấy từ token)
     .AddPolicy("Admin", p => p.RequireAuthenticatedUser().RequireClaim("maVaiTro", "ADMIN"))
     // Chính sách "QuanLyTaiChinh": chỉ quản lý tài chính được dùng API nghiệp vụ tài chính.

@@ -59,7 +59,7 @@ export const DangKyPage: React.FC = () => {
   const [isLoadingDanhSachDon, setIsLoadingDanhSachDon] = useState<boolean>(true)
 
   // Bộ lọc
-  const [trangThaiLoc, setTrangThaiLoc] = useState<string>('CHO_DUYET')
+  const [trangThaiLoc, setTrangThaiLoc] = useState<string>('Chờ duyệt')
   const [tuKhoaMaSV, setTuKhoaMaSV] = useState<string>('')
   const [tuKhoaHoTen, setTuKhoaHoTen] = useState<string>('')
 
@@ -100,8 +100,8 @@ export const DangKyPage: React.FC = () => {
   const taiDanhSachDon = async (): Promise<void> => {
     setIsLoadingDanhSachDon(true)
     try {
-      const thamSoTrangThai = trangThaiLoc === 'TAT_CA' ? undefined : trangThaiLoc
-      const ketQua = await layDanhSachDonDangKy(undefined, thamSoTrangThai)
+      // Tai tat ca don mot lan, de thong ke khong bi phu thuoc bo loc.
+      const ketQua = await layDanhSachDonDangKy()
       setDanhSachDonDangKy(ketQua)
     } catch {
       toast.error('Không thể tải danh sách đơn đăng ký')
@@ -113,13 +113,17 @@ export const DangKyPage: React.FC = () => {
   useEffect(() => {
     taiDanhSachDon()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trangThaiLoc])
+  }, [])
 
   /**
    * Lọc danh sách tức thì theo MSSV hoặc họ tên (hỗ trợ tiếng Việt không dấu, gõ dở).
    */
   const danhSachDonSauLoc = useMemo<DangKyDto[]>(() => {
     return danhSachDonDangKy.filter((don) => {
+      // TrangThai trong SQL luu chuoi tieng Viet, khong phai enum CHO_DUYET.
+      if (trangThaiLoc !== 'TAT_CA' && don.trangThai !== trangThaiLoc) {
+        return false
+      }
       if (tuKhoaMaSV.trim() && !khopChuoiTimKiem(don.maSV, tuKhoaMaSV)) {
         return false
       }
@@ -128,7 +132,7 @@ export const DangKyPage: React.FC = () => {
       }
       return true
     })
-  }, [danhSachDonDangKy, tuKhoaMaSV, tuKhoaHoTen])
+  }, [danhSachDonDangKy, tuKhoaMaSV, tuKhoaHoTen, trangThaiLoc])
 
   /**
    * Đặt lại bộ lọc tìm kiếm về mặc định.
@@ -136,7 +140,7 @@ export const DangKyPage: React.FC = () => {
   const datLaiBoLoc = (): void => {
     setTuKhoaMaSV('')
     setTuKhoaHoTen('')
-    setTrangThaiLoc('CHO_DUYET')
+    setTrangThaiLoc('Chờ duyệt')
   }
 
   /**
@@ -379,9 +383,9 @@ export const DangKyPage: React.FC = () => {
                 className="h-8 w-full rounded-md border border-slate-200 bg-white px-2.5 text-xs text-slate-700 focus:border-slate-400 focus:outline-none"
               >
                 <option value="TAT_CA">Tất cả trạng thái</option>
-                <option value="CHO_DUYET">Chờ xét duyệt</option>
-                <option value="DA_DUYET">Đã chấp thuận</option>
-                <option value="TU_CHOI">Đã từ chối</option>
+                <option value="Chờ duyệt">Chờ xét duyệt</option>
+                <option value="Đã duyệt">Đã chấp thuận</option>
+                <option value="Từ chối">Đã từ chối</option>
               </select>
             </div>
 

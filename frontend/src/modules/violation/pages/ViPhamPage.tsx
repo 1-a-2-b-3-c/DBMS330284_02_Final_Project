@@ -1,37 +1,16 @@
-import React from 'react'
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import { AlertTriangle } from 'lucide-react'
-
-/**
- * Trang Quản lý Xử lý Vi phạm Kỷ luật.
- * @returns Giao diện của màn hình quản lý vi phạm.
- */
-export const ViPhamPage: React.FC = () => {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold tracking-tight text-slate-900">Quản lý Biên bản Vi phạm Kỷ luật</h2>
-        <p className="text-sm text-slate-500">Lập biên bản vi phạm, xử lý kỷ luật và trừ điểm rèn luyện</p>
-      </div>
-
-      <Card className="border-slate-200 shadow-sm">
-        <CardHeader>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 text-amber-900">
-              <AlertTriangle className="h-5 w-5" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">Xử lý Vi phạm Kỷ luật</CardTitle>
-              <CardDescription>Theo dõi các quyết định xử lý và kỷ luật sinh viên nội trú</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="text-sm text-slate-600">
-          <p>Dữ liệu đang được đồng bộ và cập nhật từ hệ thống.</p>
-        </CardContent>
-      </Card>
-    </div>
-  )
+import {useEffect,useState} from 'react'
+import {axiosClient} from '@/api/axiosClient'
+import {useAuth} from '@/context/AuthContext'
+import {toast} from 'sonner'
+import {Heading,Panel,Table,inputClass,btnClass,secondaryClass,today} from '@/modules/shared/ManageUI'
+type ViPham={maViPham:number;maSV:string;hoTen:string;ngayViPham:string;noiDung:string;diaDiem?:string;hinhThucXuLy:string;trangThaiXuLy:string}
+const blank=()=>({maSV:'',ngayViPham:today(),noiDung:'',diaDiem:'',hinhThucXuLy:'Nhắc nhở'})
+export default function ViPhamPage(){const {hasRole}=useAuth();const [data,setData]=useState<ViPham[]>([]);const [filter,setFilter]=useState('');const [draft,setDraft]=useState(blank());const [editing,setEditing]=useState<number|null>(null);const [loading,setLoading]=useState(false)
+ const load=async()=>{setLoading(true);try{const r=await axiosClient.get<ViPham[]>('/api/ktx/vipham',{params:{maSV:filter||undefined}});setData(r.data)}catch{setData([])}finally{setLoading(false)}};
+ useEffect(()=>{if(hasRole('QLKTX'))void load()},[]);
+ const execute=async(fn:()=>Promise<unknown>)=>{try{await fn();toast.success('Đã lưu thành công');setDraft(blank());setEditing(null);await load()}catch{/* interceptor */}}
+ if(!hasRole('QLKTX'))return <p>Bạn cần quyền QLKTX để quản lý vi phạm.</p>
+ return <div className="space-y-5"><Heading title="Quản lý kỷ luật & vi phạm" desc="Lập biên bản, cập nhật hình thức xử lý và thống kê vi phạm"/><div className="grid gap-4 sm:grid-cols-3">{[['Tổng biên bản',data.length],['Chưa xử lý',data.filter(x=>x.trangThaiXuLy==='Chưa xử lý').length],['Đã xử lý',data.filter(x=>x.trangThaiXuLy==='Đã xử lý').length]].map(([label,n])=><div key={label} className="rounded-xl border bg-white p-5"><p className="text-sm text-slate-500">{label}</p><p className="text-2xl font-bold">{n}</p></div>)}</div>
+ <Panel title={editing?'Cập nhật biên bản':'Lập biên bản mới'}><form className="grid gap-3 md:grid-cols-2" onSubmit={e=>{e.preventDefault();void execute(()=>editing?axiosClient.put(`/api/ktx/vipham/${editing}`,{ngayViPham:draft.ngayViPham,noiDung:draft.noiDung,diaDiem:draft.diaDiem,hinhThucXuLy:draft.hinhThucXuLy}):axiosClient.post('/api/ktx/vipham',draft))}}><input required disabled={editing!==null} className={inputClass} placeholder="Mã sinh viên" value={draft.maSV} onChange={e=>setDraft({...draft,maSV:e.target.value})}/><input required aria-label="Ngày vi phạm" type="date" className={inputClass} value={draft.ngayViPham} onChange={e=>setDraft({...draft,ngayViPham:e.target.value})}/><input className={inputClass} placeholder="Địa điểm" value={draft.diaDiem} onChange={e=>setDraft({...draft,diaDiem:e.target.value})}/><select className={inputClass} value={draft.hinhThucXuLy} onChange={e=>setDraft({...draft,hinhThucXuLy:e.target.value})}>{['Nhắc nhở','Cảnh cáo','Buộc rời KTX'].map(v=><option key={v}>{v}</option>)}</select><textarea required className={inputClass+' md:col-span-2'} placeholder="Nội dung vi phạm" value={draft.noiDung} onChange={e=>setDraft({...draft,noiDung:e.target.value})}/><div className="flex gap-2"><button className={btnClass}>{editing?'Cập nhật':'Lập biên bản'}</button>{editing!==null&&<button type="button" className={secondaryClass} onClick={()=>{setEditing(null);setDraft(blank())}}>Hủy sửa</button>}</div></form></Panel>
+ <Panel title={'Danh sách biên bản'+(loading?' (đang tải...)':'')}><div className="mb-4 flex gap-2"><input className={inputClass+' max-w-xs'} aria-label="Lọc mã sinh viên" placeholder="Lọc mã sinh viên" value={filter} onChange={e=>setFilter(e.target.value)}/><button className={secondaryClass} onClick={()=>void load()}>Lọc</button></div><Table headers={['Mã','Sinh viên','Ngày','Nội dung','Xử lý','Trạng thái','Thao tác']} rows={data.map(v=>[v.maViPham,`${v.hoTen} (${v.maSV})`,v.ngayViPham,v.noiDung,v.hinhThucXuLy,v.trangThaiXuLy,<div className="flex flex-wrap gap-2"><button className={secondaryClass} onClick={()=>{setEditing(v.maViPham);setDraft({maSV:v.maSV,ngayViPham:v.ngayViPham,noiDung:v.noiDung,diaDiem:v.diaDiem||'',hinhThucXuLy:v.hinhThucXuLy})}}>Sửa</button>{v.trangThaiXuLy!=='Đã xử lý'&&<button className={btnClass} onClick={()=>{if(window.confirm(`Xác nhận xử lý biên bản #${v.maViPham}?`))void execute(()=>axiosClient.patch(`/api/ktx/vipham/${v.maViPham}/${v.hinhThucXuLy==='Buộc rời KTX'?'buoc-roi-ktx':'xu-ly'}`))}}>Xử lý</button>}</div>])}/></Panel></div>
 }
-
-export default ViPhamPage

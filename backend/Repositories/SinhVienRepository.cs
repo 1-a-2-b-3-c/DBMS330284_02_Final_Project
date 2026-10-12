@@ -5,13 +5,22 @@ namespace Backend.Repositories;
 
 public class SinhVienRepository
 {
-    // sp_SinhVien_TraCuu: mọi tham số đều tùy chọn
+    // Tra cuu truc tiep tren dbo.SinhVien (SELECT co tham so).
+    // Khong su dung sp_SinhVien_TraCuu; khong ghi/xoa du lieu.
     public List<SinhVienDto> TraCuu(string? maSV, string? hoTen, string? khoa, int? namHoc)
     {
         var ds = new List<SinhVienDto>();
         using var conn = Database.GetConnection();
         conn.Open();
-        using var cmd = conn.Proc("dbo.sp_SinhVien_TraCuu");
+        using var cmd = conn.Query(@"
+            SELECT MaSV, HoTen, NgaySinh, GioiTinh, QueQuan, CCCD,
+                   SDT, Khoa, NamHoc, DienUuTien
+            FROM dbo.SinhVien
+            WHERE (@MaSV IS NULL OR MaSV = @MaSV)
+              AND (@HoTen IS NULL OR HoTen LIKE N'%' + @HoTen + N'%')
+              AND (@Khoa IS NULL OR Khoa = @Khoa)
+              AND (@NamHoc IS NULL OR NamHoc = @NamHoc)
+            ORDER BY HoTen, MaSV;");
         cmd.AddParam("@MaSV", maSV);
         cmd.AddParam("@HoTen", hoTen);
         cmd.AddParam("@Khoa", khoa);
