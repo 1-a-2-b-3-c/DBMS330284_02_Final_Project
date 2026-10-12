@@ -12,7 +12,26 @@ public class ViPhamRepository
         var ds = new List<ViPhamDto>();
         using var conn = Database.GetConnection();
         conn.Open();
-        using var cmd = conn.Proc("dbo.sp_ViPham_TraCuu");
+        // Tra cứu trực tiếp từ các bảng hiện có, không phụ thuộc vào
+        // stored procedure sp_ViPham_TraCuu đang thiếu/hỏng ở DB demo.
+        // Các giá trị lọc vẫn được truyền qua SqlParameter (không nối chuỗi SQL).
+        using var cmd = conn.Query(@"
+            SELECT vp.MaViPham,
+                   vp.MaSV,
+                   sv.HoTen,
+                   vp.NgayViPham,
+                   vp.NgayLapBienBan,
+                   vp.NoiDung,
+                   vp.DiaDiem,
+                   vp.HinhThucXuLy,
+                   vp.TrangThaiXuLy
+            FROM dbo.ViPham AS vp
+            INNER JOIN dbo.SinhVien AS sv ON sv.MaSV = vp.MaSV
+            WHERE (@MaSV IS NULL OR vp.MaSV = @MaSV)
+              AND (@TrangThaiXuLy IS NULL OR vp.TrangThaiXuLy = @TrangThaiXuLy)
+              AND (@HinhThucXuLy IS NULL OR vp.HinhThucXuLy = @HinhThucXuLy)
+              AND (@MaViPham IS NULL OR vp.MaViPham = @MaViPham)
+            ORDER BY vp.NgayViPham DESC, vp.MaViPham DESC;");
         cmd.AddParam("@MaSV", maSV);
         cmd.AddParam("@TrangThaiXuLy", trangThaiXuLy);
         cmd.AddParam("@HinhThucXuLy", hinhThucXuLy);
