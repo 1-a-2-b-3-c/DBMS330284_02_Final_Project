@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Dtos;
 
-// Dữ liệu trả về từ sp_SinhVien_TraCuu
 public class SinhVienDto
 {
     public string MaSV { get; set; } = "";
@@ -17,9 +16,6 @@ public class SinhVienDto
     public string? DienUuTien { get; set; }
 }
 
-// Dữ liệu frontend gửi lên khi thêm sinh viên (sp_SinhVien_Them)
-// Các quy tắc bên dưới khớp với 02_CreateTables.sql và 03_Constraints.sql:
-//   CK_SinhVien_GioiTinh, CK_SinhVien_NamHoc, CK_SinhVien_DienUuTien, độ dài cột
 public class ThemSinhVienRequest : IValidatableObject
 {
     [Required(ErrorMessage = "Mã sinh viên không được để trống.")]
@@ -70,9 +66,6 @@ public class ThemSinhVienRequest : IValidatableObject
     }
 }
 
-// Dữ liệu frontend gửi lên khi cập nhật (sp_SinhVien_CapNhat)
-// Trường nào null thì procedure giữ nguyên giá trị cũ (COALESCE),
-// nên hiện chưa có cách xóa trắng một giá trị về NULL.
 public class CapNhatSinhVienRequest
 {
     [StringLength(15, ErrorMessage = "Số điện thoại tối đa 15 ký tự.")]

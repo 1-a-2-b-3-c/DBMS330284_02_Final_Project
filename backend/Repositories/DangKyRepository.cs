@@ -5,8 +5,6 @@ namespace Backend.Repositories;
 
 public class DangKyRepository
 {
-    // Tra cuu truc tiep tu DangKyKTX, SinhVien, LoaiPhong.
-    // Khong su dung sp_DangKyKTX_TraCuu; khong ghi/xoa du lieu.
     public List<DangKyDto> TraCuu(string? maSV, string? trangThai)
     {
         var ds = new List<DangKyDto>();
@@ -43,7 +41,6 @@ public class DangKyRepository
         return ds;
     }
 
-    // sp_DangKyKTX_Them: trả về mã đăng ký vừa tạo (tham số OUTPUT @MaDangKy)
     public int Them(string maSV, string? maLoaiPhong, string? ghiChu)
     {
         using var conn = Database.GetConnection();
@@ -57,7 +54,6 @@ public class DangKyRepository
         return (int)maDangKy.Value;
     }
 
-    // sp_DangKyKTX_Duyet: chỉ cập nhật đơn đang ở trạng thái Chờ duyệt
     public void Duyet(int maDangKy, bool chapNhan, string? ghiChu)
     {
         using var conn = Database.GetConnection();
@@ -69,7 +65,6 @@ public class DangKyRepository
         cmd.ExecuteNonQuery();
     }
 
-    // sp_PhanPhong_Them: tạo phân phòng, hợp đồng và cập nhật đơn trong cùng transaction
     public (int MaPhanPhong, int MaHopDong) XepPhong(
         int maDangKy, XepPhongRequest req)
     {

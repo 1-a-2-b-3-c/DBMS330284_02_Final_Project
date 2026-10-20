@@ -2,9 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Dtos;
 
-// ===== Dữ liệu trả về =====
-
-// sp_DangKyKTX_TraCuu
 public class DangKyDto
 {
     public int MaDangKy { get; set; }
@@ -17,7 +14,6 @@ public class DangKyDto
     public string? GhiChu { get; set; }
 }
 
-// vw_SinhVienDangO: phòng sinh viên đang ở
 public class PhongCuaToiDto
 {
     public int MaPhanPhong { get; set; }
@@ -28,7 +24,6 @@ public class PhongCuaToiDto
     public DateOnly? NgayKetThuc { get; set; }
 }
 
-// Hóa đơn kèm tổng tiền, đã trả, còn nợ (tính bằng fn_TongTienHoaDon, fn_DaThanhToan, fn_ConNo)
 public class HoaDonDto
 {
     public int MaHoaDon { get; set; }
@@ -65,9 +60,6 @@ public class ViPhamDto
     public string TrangThaiXuLy { get; set; } = "";
 }
 
-// ===== Dữ liệu sinh viên gửi lên =====
-
-// Sinh viên chỉ được sửa số điện thoại và quê quán.
 public class CapNhatHoSoRequest
 {
     [StringLength(15, ErrorMessage = "Số điện thoại tối đa 15 ký tự.")]
@@ -118,7 +110,6 @@ public class XepPhongRequest : IValidatableObject
     }
 }
 
-// Khớp CK_ThanhToan_PhuongThuc và CK_ThanhToan_SoTien
 public class ThanhToanRequest
 {
     [Range(0.01, 1_000_000_000_000.0, ErrorMessage = "Số tiền phải lớn hơn 0.")]

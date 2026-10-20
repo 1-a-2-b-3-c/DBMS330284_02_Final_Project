@@ -5,16 +5,12 @@ namespace Backend.Repositories;
 
 public class ViPhamRepository
 {
-    // sp_ViPham_TraCuu: mọi tham số đều tùy chọn
     public List<ViPhamDto> TraCuu(string? maSV, string? trangThaiXuLy,
                                   string? hinhThucXuLy = null, int? maViPham = null)
     {
         var ds = new List<ViPhamDto>();
         using var conn = Database.GetConnection();
         conn.Open();
-        // Tra cứu trực tiếp từ các bảng hiện có, không phụ thuộc vào
-        // stored procedure sp_ViPham_TraCuu đang thiếu/hỏng ở DB demo.
-        // Các giá trị lọc vẫn được truyền qua SqlParameter (không nối chuỗi SQL).
         using var cmd = conn.Query(@"
             SELECT vp.MaViPham,
                    vp.MaSV,

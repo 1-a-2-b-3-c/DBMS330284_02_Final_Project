@@ -5,9 +5,6 @@ namespace Backend.Repositories;
 
 public class HoaDonRepository
 {
-    // Danh sách hóa đơn của một sinh viên.
-    // Trong 04_Procedures.sql chưa có procedure tra cứu hóa đơn nên tạm dùng SELECT trực tiếp,
-    // chỉ dùng các bảng/hàm đã biết. Nên chuyển thành view hoặc procedure khi tiện.
     public List<HoaDonDto> DanhSachCuaSV(string maSV)
     {
         var ds = new List<HoaDonDto>();
@@ -43,7 +40,6 @@ public class HoaDonRepository
         return ds;
     }
 
-    // Các dòng chi tiết của một hóa đơn. Gọi sau khi đã kiểm tra hóa đơn thuộc về sinh viên.
     public List<ChiTietHoaDonDto> ChiTiet(int maHoaDon)
     {
         var ds = new List<ChiTietHoaDonDto>();
@@ -73,7 +69,6 @@ public class HoaDonRepository
         return ds;
     }
 
-    // sp_ThanhToanHoaDon: trả về mã thanh toán (OUTPUT @MaThanhToan)
     public int ThanhToan(int maHoaDon, decimal soTien, string phuongThuc, string? maGiaoDich)
     {
         using var conn = Database.GetConnection();

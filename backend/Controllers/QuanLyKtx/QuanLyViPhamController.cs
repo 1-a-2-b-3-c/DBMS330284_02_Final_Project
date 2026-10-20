@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
-// Quản lý KTX và quản trị viên dùng chung policy "QuanLyKtx".
 [ApiController]
 [Route("api/ktx/vipham")]
 [Authorize(Policy = "QuanLyKtx")]
@@ -13,14 +12,12 @@ public class QuanLyViPhamController : ControllerBase
 {
     private readonly ViPhamRepository _repo = new();
 
-    // GET /api/ktx/vipham?maSV=&trangThaiXuLy=&hinhThucXuLy=
     [HttpGet]
     public IActionResult TraCuu([FromQuery] string? maSV,
                                 [FromQuery] string? trangThaiXuLy,
                                 [FromQuery] string? hinhThucXuLy)
         => Ok(_repo.TraCuu(maSV, trangThaiXuLy, hinhThucXuLy));
 
-    // GET /api/ktx/vipham/danh-muc
     [HttpGet("danh-muc")]
     public IActionResult DanhMuc() => Ok(new
     {
@@ -28,7 +25,6 @@ public class QuanLyViPhamController : ControllerBase
         trangThaiXuLy = new[] { "Chưa xử lý", "Đã xử lý" }
     });
 
-    // GET /api/ktx/vipham/{maViPham}
     [HttpGet("{maViPham:int}")]
     public IActionResult LayMot(int maViPham)
     {
@@ -38,7 +34,6 @@ public class QuanLyViPhamController : ControllerBase
             : Ok(viPham);
     }
 
-    // POST /api/ktx/vipham
     [HttpPost]
     public IActionResult Them([FromBody] ThemViPhamRequest req)
     {
@@ -50,7 +45,6 @@ public class QuanLyViPhamController : ControllerBase
         });
     }
 
-    // PUT /api/ktx/vipham/{maViPham}
     [HttpPut("{maViPham:int}")]
     public IActionResult CapNhat(int maViPham, [FromBody] CapNhatViPhamRequest req)
     {
@@ -58,7 +52,6 @@ public class QuanLyViPhamController : ControllerBase
         return Ok(new { message = "Cập nhật biên bản vi phạm thành công." });
     }
 
-    // PATCH /api/ktx/vipham/{maViPham}/xu-ly
     [HttpPatch("{maViPham:int}/xu-ly")]
     public IActionResult XuLy(int maViPham)
     {
@@ -74,7 +67,6 @@ public class QuanLyViPhamController : ControllerBase
         return Ok(new { message = "Đã xử lý biên bản vi phạm." });
     }
 
-    // PATCH /api/ktx/vipham/{maViPham}/buoc-roi-ktx
     [HttpPatch("{maViPham:int}/buoc-roi-ktx")]
     public IActionResult XuLyBuocRoiKtx(int maViPham)
     {

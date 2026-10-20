@@ -1,6 +1,5 @@
 namespace Backend.Dtos;
 
-// Một dòng của vw_PhongChiTiet (qua sp_Phong_TraCuu)
 public class PhongDto
 {
     public int MaPhong { get; set; }

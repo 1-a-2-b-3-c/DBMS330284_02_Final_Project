@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
-// Quan ly danh muc khoan thu THUC TE: khong dung localStorage, khong can stored procedure moi.
 [ApiController]
 [Route("api/ktx/taichinh/khoan-thu")]
 [Authorize(Policy = "QuanLyTaiChinh")]

@@ -12,19 +12,16 @@ public class QuanLyTaiChinhController : ControllerBase
 {
     private readonly TaiChinhRepository _repo = new();
 
-    // GET /api/ktx/taichinh/cong-no?maSV=&trangThai=&loaiHoaDon=
     [HttpGet("cong-no")]
     public IActionResult CongNo([FromQuery] string? maSV,
                                [FromQuery] string? trangThai,
                                [FromQuery] string? loaiHoaDon)
         => Ok(_repo.CongNo(maSV, trangThai, loaiHoaDon));
 
-    // GET /api/ktx/taichinh/hoa-don-qua-han?maSV=
     [HttpGet("hoa-don-qua-han")]
     public IActionResult HoaDonQuaHan([FromQuery] string? maSV)
         => Ok(_repo.HoaDonQuaHan(maSV));
 
-    // GET /api/ktx/taichinh/doanh-thu?nam=&loaiHoaDon=
     [HttpGet("doanh-thu")]
     public IActionResult DoanhThu([FromQuery] int? nam, [FromQuery] string? loaiHoaDon)
     {
@@ -34,7 +31,6 @@ public class QuanLyTaiChinhController : ControllerBase
         return Ok(_repo.DoanhThu(nam, loaiHoaDon));
     }
 
-    // GET /api/ktx/taichinh/hoa-don/{maHoaDon}
     [HttpGet("hoa-don/{maHoaDon:int}")]
     public IActionResult LayHoaDon(int maHoaDon)
     {
@@ -48,7 +44,6 @@ public class QuanLyTaiChinhController : ControllerBase
         return Ok(new { hoaDon, chiTiet = _repo.ChiTietHoaDon(maHoaDon) });
     }
 
-    // POST /api/ktx/taichinh/hoa-don
     [HttpPost("hoa-don")]
     public IActionResult LapHoaDon([FromBody] LapHoaDonRequest req)
     {
@@ -60,7 +55,6 @@ public class QuanLyTaiChinhController : ControllerBase
         });
     }
 
-    // POST /api/ktx/taichinh/hoa-don/{maHoaDon}/chi-tiet
     [HttpPost("hoa-don/{maHoaDon:int}/chi-tiet")]
     public IActionResult ThemChiTiet(int maHoaDon, [FromBody] ThemChiTietHoaDonRequest req)
     {
@@ -75,7 +69,6 @@ public class QuanLyTaiChinhController : ControllerBase
         });
     }
 
-    // PATCH /api/ktx/taichinh/hoa-don/{maHoaDon}/huy
     [HttpPatch("hoa-don/{maHoaDon:int}/huy")]
     public IActionResult HuyHoaDon(int maHoaDon)
     {

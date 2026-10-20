@@ -12,12 +12,10 @@ public class QuanLyDangKyController : ControllerBase
 {
     private readonly DangKyRepository _repo = new();
 
-    // GET /api/ktx/dangky?maSV=&trangThai=
     [HttpGet]
     public IActionResult TraCuu([FromQuery] string? maSV, [FromQuery] string? trangThai)
         => Ok(_repo.TraCuu(maSV, trangThai));
 
-    // PATCH /api/ktx/dangky/{maDangKy}/duyet
     [HttpPatch("{maDangKy:int}/duyet")]
     public IActionResult XetDuyet(int maDangKy, [FromBody] XetDuyetDangKyRequest req)
     {
@@ -36,7 +34,6 @@ public class QuanLyDangKyController : ControllerBase
         });
     }
 
-    // POST /api/ktx/dangky/{maDangKy}/xep-phong
     [HttpPost("{maDangKy:int}/xep-phong")]
     public IActionResult XepPhong(int maDangKy, [FromBody] XepPhongRequest req)
     {

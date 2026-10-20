@@ -2,7 +2,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Backend.Dtos;
 
-// Dòng trả về từ sp_TaiKhoan_DangNhap (chỉ dùng trong backend, KHÔNG trả ra frontend vì có hash)
 public class TaiKhoanDto
 {
     public string MaTaiKhoan { get; set; } = "";

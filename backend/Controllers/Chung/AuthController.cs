@@ -6,8 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
-// Tài khoản sinh viên do hệ thống tự tạo khi quản lý thêm sinh viên (POST /api/sinhvien),
-// nên ở đây không có chức năng tự đăng ký.
 [ApiController]
 [Route("api/auth")]
 public class AuthController : ControllerBase
@@ -17,7 +15,6 @@ public class AuthController : ControllerBase
 
     public AuthController(TokenService token) => _token = token;
 
-    // POST /api/auth/dang-nhap
     [HttpPost("dang-nhap")]
     public IActionResult DangNhap([FromBody] DangNhapRequest req)
     {
@@ -37,7 +34,6 @@ public class AuthController : ControllerBase
         });
     }
 
-    // POST /api/auth/doi-mat-khau (cần đăng nhập)
     [Authorize]
     [HttpPost("doi-mat-khau")]
     public IActionResult DoiMatKhau([FromBody] DoiMatKhauRequest req)
@@ -53,7 +49,6 @@ public class AuthController : ControllerBase
         return Ok(new { message = "Đổi mật khẩu thành công." });
     }
 
-    // Hash không đúng định dạng BCrypt (ví dụ mật khẩu thô nhập tay vào DB) sẽ ném lỗi, coi như không khớp
     private static bool KhopMatKhau(string matKhau, string hash)
     {
         try { return BCrypt.Net.BCrypt.Verify(matKhau, hash); }

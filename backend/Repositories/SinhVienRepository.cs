@@ -5,8 +5,6 @@ namespace Backend.Repositories;
 
 public class SinhVienRepository
 {
-    // Tra cuu truc tiep tren dbo.SinhVien (SELECT co tham so).
-    // Khong su dung sp_SinhVien_TraCuu; khong ghi/xoa du lieu.
     public List<SinhVienDto> TraCuu(string? maSV, string? hoTen, string? khoa, int? namHoc)
     {
         var ds = new List<SinhVienDto>();
@@ -46,8 +44,6 @@ public class SinhVienRepository
         return ds;
     }
 
-    // sp_SinhVien_ThemKemTaiKhoan: thêm sinh viên và tài khoản trong cùng một transaction
-    // (procedure này gọi sp_SinhVien_Them và sp_TaiKhoan_Them bên trong)
     public void ThemKemTaiKhoan(ThemSinhVienRequest req, string matKhauHash, string maVaiTro)
     {
         using var conn = Database.GetConnection();
@@ -68,7 +64,6 @@ public class SinhVienRepository
         cmd.ExecuteNonQuery();
     }
 
-    // sp_SinhVien_CapNhat: procedure tự ném lỗi 50101 nếu không tìm thấy
     public void CapNhat(string maSV, CapNhatSinhVienRequest req)
     {
         using var conn = Database.GetConnection();

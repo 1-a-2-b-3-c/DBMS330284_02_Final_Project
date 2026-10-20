@@ -9,7 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 var builder = WebApplication.CreateBuilder(args);
 Database.Init(builder.Configuration.GetConnectionString("Default")!);
 
-// Controller + bắt lỗi SQL Server + gom lỗi kiểm tra dữ liệu về dạng { "message": "..." }
 builder.Services.AddControllers(o => o.Filters.Add<Backend.SqlExceptionFilter>())
     .ConfigureApiBehaviorOptions(o =>
     {
@@ -25,15 +24,13 @@ builder.Services.AddControllers(o => o.Filters.Add<Backend.SqlExceptionFilter>()
 builder.Services.AddSingleton<TokenService>();
 builder.Services.AddScoped<TaiKhoanRepository>();
 
-// Cho phép frontend (chạy ở cổng khác) gọi API
 builder.Services.AddCors(o => o.AddDefaultPolicy(p =>
     p.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod()));
 
-// Đăng nhập bằng JWT
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(o =>
     {
-        o.MapInboundClaims = false; // giữ nguyên tên claim như maSV, maTaiKhoan
+        o.MapInboundClaims = false; 
         o.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

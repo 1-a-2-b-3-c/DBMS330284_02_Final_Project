@@ -6,8 +6,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace Backend.Services;
 
-// Tạo JWT sau khi đăng nhập thành công. Cấu hình lấy từ mục "Jwt" trong appsettings.json.
-// Token chứa maSV: các endpoint /api/me lấy mã sinh viên từ token, không tin dữ liệu frontend gửi lên.
 public class TokenService
 {
     private readonly IConfiguration _cfg;

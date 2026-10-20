@@ -11,7 +11,6 @@ public class QuanLyHopDongController : ControllerBase
 {
     private readonly HopDongRepository _repo = new();
 
-    // GET /api/ktx/hopdong?maSV=&trangThai=&sapHetHanTrongNgay=
     [HttpGet]
     public IActionResult TraCuu([FromQuery] string? maSV,
                                 [FromQuery] string? trangThai,
@@ -23,7 +22,6 @@ public class QuanLyHopDongController : ControllerBase
         return Ok(_repo.TraCuu(maSV, trangThai, sapHetHanTrongNgay));
     }
 
-    // PATCH /api/ktx/hopdong/phan-phong/{maPhanPhong}/ket-thuc
     [HttpPatch("phan-phong/{maPhanPhong:int}/ket-thuc")]
     public IActionResult KetThucLuuTru(int maPhanPhong)
     {

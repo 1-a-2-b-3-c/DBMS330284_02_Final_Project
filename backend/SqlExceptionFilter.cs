@@ -4,13 +4,6 @@ using Microsoft.Data.SqlClient;
 
 namespace Backend;
 
-// Bắt lỗi từ SQL Server cho mọi Controller:
-// - Lỗi THROW 5xxxx trong procedure (lỗi nghiệp vụ)  -> 400 kèm nội dung tiếng Việt
-// - 2627 / 2601 (trùng khóa hoặc giá trị UNIQUE)      -> 409
-// - 547 (vi phạm FOREIGN KEY / CHECK)                 -> 400
-// Với 2627 / 2601 / 547, tìm tên constraint trong thông báo gốc để trả câu dễ hiểu.
-// Chỉ cần thêm constraint mà người dùng có thể gặp thật (UNIQUE, PRIMARY KEY, FOREIGN KEY);
-// constraint CHECK thường đã được Dto kiểm tra trước.
 public class SqlExceptionFilter : IExceptionFilter
 {
     private static readonly Dictionary<string, string> ConstraintMessages = new()

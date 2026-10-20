@@ -5,7 +5,6 @@ namespace Backend.Repositories;
 
 public class PhongRepository
 {
-    // sp_Phong_TraCuu (đọc vw_PhongChiTiet)
     public List<PhongDto> TraCuu(string? maKhu, string? trangThai, bool chiConCho)
     {
         var ds = new List<PhongDto>();
@@ -36,7 +35,6 @@ public class PhongRepository
         return ds;
     }
 
-    // Phòng sinh viên đang ở (đọc vw_SinhVienDangO, các cột này đều có trong sp_Phong_XemSinhVien)
     public List<PhongCuaToiDto> PhongDangO(string maSV)
     {
         var ds = new List<PhongCuaToiDto>();
@@ -65,7 +63,6 @@ public class PhongRepository
         return ds;
     }
 
-    // sp_Phong_XemSinhVien: những người đang ở một phòng (chỉ lấy mã và họ tên)
     public List<(string MaSV, string HoTen)> NguoiTrongPhong(int maPhong)
     {
         var ds = new List<(string, string)>();

@@ -77,7 +77,6 @@ public class TaiKhoanRepository
         return result is bool dangHoatDong && dangHoatDong;
     }
 
-    // sp_TaiKhoan_DangNhap: chỉ trả tài khoản đang hoạt động; null nếu không có
     public TaiKhoanDto? DangNhap(string tenDangNhap)
     {
         using var conn = Database.GetConnection();
@@ -98,7 +97,6 @@ public class TaiKhoanRepository
         };
     }
 
-    // sp_TaiKhoan_DoiMatKhau
     public void DoiMatKhau(string maTaiKhoan, string matKhauHashMoi)
     {
         using var conn = Database.GetConnection();

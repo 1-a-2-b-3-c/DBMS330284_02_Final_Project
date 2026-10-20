@@ -7,8 +7,6 @@ using Microsoft.Data.SqlClient;
 
 namespace Backend.Controllers;
 
-// QLTC ghi nhan THU TIEN THU CONG (khong phai ket noi ngan hang).
-// Khong phu thuoc vao sp_ThanhToanHoaDon co the dang thieu trong DB demo.
 [ApiController]
 [Route("api/ktx/taichinh/thu-tien")]
 [Authorize(Policy = "QuanLyTaiChinh")]
@@ -60,7 +58,6 @@ public sealed class ThuTienController : ControllerBase
 
         using var conn = Database.GetConnection();
         conn.Open();
-        // Khoa hoa don trong suot transaction, tranh 2 nguoi thu cung mot khoan no.
         using var tx = conn.BeginTransaction(IsolationLevel.Serializable);
         try
         {
@@ -119,7 +116,6 @@ public sealed class ThuTienController : ControllerBase
                 maThanhToan = (int)ghi.ExecuteScalar()!;
             }
 
-            // Dong bo trang thai ca khi ban demo chua nap trigger cap nhat hoa don.
             using (var capNhat = new SqlCommand(@"
                 UPDATE dbo.HoaDon
                 SET TrangThai = CASE WHEN @ConNoConLai = 0 THEN N'Đã thanh toán'

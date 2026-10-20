@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Backend.Controllers;
 
-// Admin-only endpoints for managing user accounts.
 [ApiController]
 [Route("api/admin/tai-khoan")]
 [Authorize(Policy = "Admin")]
