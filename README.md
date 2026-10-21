@@ -286,7 +286,6 @@ DBMS330284_02_Final_Project/
 │   ├── .env.example                                # Ví dụ cấu hình địa chỉ API
 │   ├── .gitignore                                  # Các file frontend Git bỏ qua
 │   ├── .oxlintrc.json                              # Cấu hình Oxlint
-│   ├── FRONTEND_5_PHAN_HUONG_DAN.md                # Tài liệu hướng dẫn phân chia frontend
 │   ├── README.md                                   # Hướng dẫn riêng cho frontend
 │   ├── components.json                             # Cấu hình bộ UI components
 │   ├── index.html                                  # HTML host của ứng dụng Vite
