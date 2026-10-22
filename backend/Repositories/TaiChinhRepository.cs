@@ -1,5 +1,6 @@
 using Backend.Data;
 using Backend.Dtos;
+using System.Data;
 
 namespace Backend.Repositories;
 
@@ -72,20 +73,48 @@ public class TaiChinhRepository
         return reader.ReadRows();
     }
 
-    public int LapHoaDon(LapHoaDonRequest req)
+    public List<int> LapHoaDon(LapHoaDonRequest req)
     {
         using var conn = Database.GetConnection();
         conn.Open();
-        using var cmd = conn.Proc("dbo.sp_LapHoaDon");
-        cmd.AddParam("@MaPhanPhong", req.MaPhanPhong);
-        cmd.AddParam("@LoaiHoaDon", req.LoaiHoaDon);
-        cmd.AddParam("@HanThanhToan", req.HanThanhToan);
-        cmd.AddParam("@MaKhoanThu", req.MaKhoanThu);
-        cmd.AddParam("@SoLuong", req.SoLuong);
-        cmd.AddParam("@KyThu", req.KyThu);
-        var maHoaDon = cmd.AddOutInt("@MaHoaDon");
-        cmd.ExecuteNonQuery();
-        return (int)maHoaDon.Value;
+        using var transaction = conn.BeginTransaction(IsolationLevel.Serializable);
+
+        using var assignments = conn.Query(@"
+            SELECT MaPhanPhong
+            FROM dbo.vw_SinhVienDangO
+            WHERE (@MaSV IS NOT NULL AND MaSV = @MaSV)
+               OR (@TenPhong IS NOT NULL AND SoPhong = @TenPhong AND TenKhu = @TenKhu)
+            ORDER BY MaPhanPhong");
+        assignments.Transaction = transaction;
+        assignments.AddParam("@MaSV", string.IsNullOrWhiteSpace(req.MaSV) ? null : req.MaSV.Trim());
+        assignments.AddParam("@TenPhong", string.IsNullOrWhiteSpace(req.TenPhong) ? null : req.TenPhong.Trim());
+        assignments.AddParam("@TenKhu", string.IsNullOrWhiteSpace(req.TenKhu) ? null : req.TenKhu.Trim());
+
+        var maPhanPhongs = new List<int>();
+        using (var reader = assignments.ExecuteReader())
+        {
+            while (reader.Read())
+                maPhanPhongs.Add(reader.GetInt32(reader.GetOrdinal("MaPhanPhong")));
+        }
+
+        var maHoaDons = new List<int>(maPhanPhongs.Count);
+        foreach (var maPhanPhong in maPhanPhongs)
+        {
+            using var cmd = conn.Proc("dbo.sp_LapHoaDon");
+            cmd.Transaction = transaction;
+            cmd.AddParam("@MaPhanPhong", maPhanPhong);
+            cmd.AddParam("@LoaiHoaDon", req.LoaiHoaDon);
+            cmd.AddParam("@HanThanhToan", req.HanThanhToan);
+            cmd.AddParam("@MaKhoanThu", req.MaKhoanThu);
+            cmd.AddParam("@SoLuong", req.SoLuong);
+            cmd.AddParam("@KyThu", req.KyThu);
+            var maHoaDon = cmd.AddOutInt("@MaHoaDon");
+            cmd.ExecuteNonQuery();
+            maHoaDons.Add((int)maHoaDon.Value);
+        }
+
+        transaction.Commit();
+        return maHoaDons;
     }
 
     public void ThemChiTietHoaDon(int maHoaDon, ThemChiTietHoaDonRequest req)

@@ -47,11 +47,15 @@ public class QuanLyTaiChinhController : ControllerBase
     [HttpPost("hoa-don")]
     public IActionResult LapHoaDon([FromBody] LapHoaDonRequest req)
     {
-        var maHoaDon = _repo.LapHoaDon(req);
-        return CreatedAtAction(nameof(LayHoaDon), new { maHoaDon }, new
+        var maHoaDons = _repo.LapHoaDon(req);
+        if (maHoaDons.Count == 0)
+            return NotFound(new { message = "Không tìm thấy sinh viên đang ở hoặc sinh viên nào đang ở phòng đã chọn." });
+
+        return CreatedAtAction(nameof(LayHoaDon), new { maHoaDon = maHoaDons[0] }, new
         {
-            message = "Lập hóa đơn thành công.",
-            maHoaDon
+            message = $"Lập thành công {maHoaDons.Count} hóa đơn.",
+            soLuongHoaDon = maHoaDons.Count,
+            maHoaDons
         });
     }
 

@@ -4,8 +4,14 @@ namespace Backend.Dtos;
 
 public class LapHoaDonRequest : IValidatableObject
 {
-    [Range(1, int.MaxValue, ErrorMessage = "Mã phân phòng phải lớn hơn 0.")]
-    public int MaPhanPhong { get; set; }
+    [StringLength(15, ErrorMessage = "Mã sinh viên tối đa 15 ký tự.")]
+    public string? MaSV { get; set; }
+
+    [StringLength(10, ErrorMessage = "Tên phòng tối đa 10 ký tự.")]
+    public string? TenPhong { get; set; }
+
+    [StringLength(100, ErrorMessage = "Tên khu tối đa 100 ký tự.")]
+    public string? TenKhu { get; set; }
 
     [Required(ErrorMessage = "Loại hóa đơn không được để trống.")]
     [AllowedValues("Tiền phòng", "Điện nước", ErrorMessage = "Loại hóa đơn phải là Tiền phòng hoặc Điện nước.")]
@@ -23,6 +29,20 @@ public class LapHoaDonRequest : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        var coMaSV = !string.IsNullOrWhiteSpace(MaSV);
+        var coTenPhong = !string.IsNullOrWhiteSpace(TenPhong);
+        var coTenKhu = !string.IsNullOrWhiteSpace(TenKhu);
+
+        if (coMaSV == coTenPhong)
+            yield return new ValidationResult(
+                "Phải cung cấp mã sinh viên hoặc tên phòng, không được cung cấp cả hai.",
+                new[] { nameof(MaSV), nameof(TenPhong) });
+
+        if (coTenPhong != coTenKhu)
+            yield return new ValidationResult(
+                "Khi lập hóa đơn theo phòng, phải cung cấp cả tên phòng và tên khu.",
+                new[] { nameof(TenPhong), nameof(TenKhu) });
+
         if (HanThanhToan == default)
             yield return new ValidationResult("Hạn thanh toán không được để trống.", new[] { nameof(HanThanhToan) });
         else if (HanThanhToan < DateOnly.FromDateTime(DateTime.Today))
